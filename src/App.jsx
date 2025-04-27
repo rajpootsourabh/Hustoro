@@ -1,4 +1,4 @@
-import {Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { Suspense } from "react";
 import './App.css'
 import LandingPage from "./Pages/LandingPage";
@@ -12,6 +12,9 @@ import Jobs from "./Dashboard/Pages/Jobs/Jobs";
 import DashboardLayout from "./Dashboard/DashboardLayout";
 import Candidates from "./Dashboard/Pages/Candidates";
 import CreateJob from "./Dashboard/Pages/Jobs/CreateJob";
+import Employee from "./Dashboard/Pages/Employee/Employee"
+import CreateProfile from "./Dashboard/Pages/Employee/CreateProfile"
+import EditProfileLayout from "./Dashboard/Pages/Employee/EditProfileLayout"
 
 function App() {
 
@@ -30,8 +33,12 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="jobs" element={<Jobs />} />
             <Route path="jobs/create-job" element={<CreateJob />} />
+            <Route path="employee" element={<Employee />} />
             <Route path="candidates" element={<Candidates />} />
           </Route>
+          {/* Special Route WITHOUT Navbar */}
+          <Route path="/dashboard/employee/new" element={<CreateProfile />} />
+          <Route path="/dashboard/employee/edit" element={<EditProfileLayout />} />
         </Routes>
       </Suspense>
     </>
