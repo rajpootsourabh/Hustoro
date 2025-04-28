@@ -61,7 +61,7 @@ const DashboardNavbar = ({username}) => {
             <Link to="/dashboard/jobs"><li className={`${path==="jobs"?'bg-[#00756A]':''} px-4 py-1.5 rounded-md cursor-pointer font-light`}>Jobs</li></Link>
             {/* <Link to="/dashboard/candidates"><li className={`${path==="candidates"?'bg-[#00756A]':''} px-4 py-1.5 rounded-md cursor-pointer font-light`}>Candidates</li></Link> */}
             <li className={`${path==="candidates"?'bg-[#00756A]':''} px-4 py-1.5 rounded-md cursor-pointer font-light`}>Candidates</li>
-            <li className={`${path==="employees"?'bg-[#00756A]':''} px-4 py-1.5 rounded-md cursor-pointer font-light`}>Employees</li>
+            <Link to="/dashboard/employee"><li className={`${path==="employees"?'bg-[#00756A]':''} px-4 py-1.5 rounded-md cursor-pointer font-light`}>Employees</li></Link>
             <li className={`${path==="times-off"?'bg-[#00756A]':''} px-4 py-1.5 rounded-md cursor-pointer font-light`}>Time Off</li>
             <li className={`${path==="files"?'bg-[#00756A]':''} px-4 py-1.5 rounded-md cursor-pointer font-light`}>Files</li>
             <li className={`${path==="reports"?'bg-[#00756A]':''} px-4 py-1.5 rounded-md cursor-pointer font-light`}>Reports</li>
