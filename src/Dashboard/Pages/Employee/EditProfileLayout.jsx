@@ -11,14 +11,77 @@ import LegalDocumentsSection from "../../../Dashboard/Components/Employee/LegalD
 import ExperienceSection from "../../../Dashboard/Components/Employee/ExperienceSection";
 import EmergencySection from "../../../Dashboard/Components/Employee/EmergencySection";
 import Loader from "../../Components/Loader";
-import { employeeValidationSchema } from '../../../utils/validationSchema';
+import { useLocation } from "react-router-dom";
+import { validateCompensationBenefits, validateEmergencyContact, validateExperience, validateJobInfo, validateLegalDocuments, validatePersonalInfo } from "../../../utils/validateEmpData";
+
 
 export default function EditProfileLayout() {
-    const [errors, setErrors] = useState({});
+    const location = useLocation();
     const [isLoading, setIsLoading] = useState(false);
     const { showSnackbar } = useSnackbar(); // Get the showSnackbar function from the context
     const [activeSection, setActiveSection] = useState("Personal");
     const [profileImage, setProfileImage] = useState(null);
+    const [errors, setErrors] = useState({
+        personal: {},
+        job: {},
+        compensationBenefits: {},
+        legalDocuments: {},
+        experience: {},
+        emergency: {},
+    });
+
+    const validateForm = () => {
+        const personalErrors = validatePersonalInfo(formData.personal);
+        const jobErrors = validateJobInfo(formData.job);
+        const compensationErrors = validateCompensationBenefits(formData.compensationBenefits);
+        const legalErrors = validateLegalDocuments(formData.legalDocuments);
+        const experienceErrors = validateExperience(formData.experience);
+        const emergencyErrors = validateEmergencyContact(formData.emergency);
+
+        setErrors({
+            personal: personalErrors,
+            job: jobErrors,
+            compensationBenefits: compensationErrors,
+            legalDocuments: legalErrors,
+            experience: experienceErrors,
+            emergency: emergencyErrors,
+        });
+
+        // Check if there are any errors
+        return Object.values({
+            personalErrors,
+            jobErrors,
+            compensationErrors,
+            legalErrors,
+            experienceErrors,
+            emergencyErrors,
+        }).some((error) => Object.keys(error).length > 0);
+    };
+
+
+    const preFilledData = location.state?.form;
+    console.log(preFilledData)
+
+    useEffect(() => {
+        if (preFilledData) {
+            setFormData((prev) => ({
+                ...prev,
+                personal: {
+                    ...prev.personal,
+                    firstName: preFilledData.firstName || "",
+                    lastName: preFilledData.lastName || "",
+                    personalEmail: preFilledData.personalEmail
+                },
+                job: {
+                    ...prev.job,
+                    jobTitle: preFilledData.jobTitle || "",
+                    startDate: preFilledData.startDate,
+                    entity: preFilledData.entity || ""
+                }
+            }));
+        }
+    }, [preFilledData]);
+
     const [formData, setFormData] = useState({
         personal: {},
         job: {},
@@ -139,34 +202,17 @@ export default function EditProfileLayout() {
         }
     };
 
-    const validateForm = async () => {
-        try {
-            await employeeValidationSchema.validate(formData, { abortEarly: false });
-            setErrors({});
-            return true;
-        } catch (err) {
-            const newErrors = {};
-            err.inner.forEach(error => {
-                const [section, field] = error.path.split('.');
-                if (!newErrors[section]) newErrors[section] = {};
-                newErrors[section][field] = error.message;
-            });
-            setErrors(newErrors);
-            return false;
-        }
-    };
-
     // Handle Form Submit (Publish)
     const handleSubmit = async () => {
         if (!isFormDirty) {
             showSnackbar("No changes to submit!", "warning");
             return;
         }
-        // const isValid = await validateForm();
-        // if (!isValid) {
-        //     showSnackbar("Please fix validation errors", "error");
-        //     return;
-        // }
+        if (await validateForm()) {
+            showSnackbar("Please fill all required fields before submitting.", "error");
+            return;
+        }
+
         setIsLoading(true); // Start loading
 
         try {
@@ -201,7 +247,15 @@ export default function EditProfileLayout() {
             if (response.ok) {
                 const data = await response.json();
                 showSnackbar("Employee added successfully!", "success");
-                console.log(data);
+                // ✅ Clear errors after successful submission
+                setErrors({
+                    personal: {},
+                    job: {},
+                    compensationBenefits: {},
+                    legalDocuments: {},
+                    experience: {},
+                    emergency: {},
+                });
                 setIsFormDirty(false);
             } else {
                 // If response is not OK, try to get the actual error message from the response body
@@ -251,37 +305,37 @@ export default function EditProfileLayout() {
                             handleImageUpload={handleImageUpload}
                             data={formData.personal}
                             onChange={(data) => handleFormDataChange("personal", data)}
-                            errors={errors.personal || {}}
+                            errors={errors.personal}
                         />
                         <JobSection
                             ref={sectionRefs.Job}
                             data={formData.job}
                             onChange={(data) => handleFormDataChange("job", data)}
-                            // errors={errors.job || {}}
+                            errors={errors.job}
                         />
                         <CompensationBenefitsSection
                             ref={sectionRefs.CompensationBenefits}
                             data={formData.compensationBenefits}
                             onChange={(data) => handleFormDataChange("compensationBenefits", data)}
-                            // errors={errors.compensationBenefits|| {}}
+                            errors={errors.compensationBenefits}
                         />
                         <LegalDocumentsSection
                             ref={sectionRefs.LegalDocuments}
                             data={formData.legalDocuments}
                             onChange={(data) => handleFormDataChange("legalDocuments", data)}
-                            // errors={errors.legalDocuments || {}}
+                            errors={errors.legalDocuments}
                         />
                         <ExperienceSection
                             ref={sectionRefs.Experience}
                             data={formData.experience}
                             onChange={(data) => handleFormDataChange("experience", data)}
-                            // errors={errors.experience || {}}
+                            errors={errors.experience}
                         />
                         <EmergencySection
                             ref={sectionRefs.Emergency}
                             data={formData.emergency}
                             onChange={(data) => handleFormDataChange("emergency", data)}
-                            // errors={errors.emergency || {}}
+                            errors={errors.emergency}
                         />
                     </div>
                 </main>

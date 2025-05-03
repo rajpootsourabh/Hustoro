@@ -5,7 +5,7 @@ import FormDateInput from "./FormDateInput";
 import CustomSelect from "../CustomSelect";
 import countryList from '../../../utils/countryList';
 
-const PersonalSection = forwardRef(({ profileImage, handleImageUpload, data, onChange, errors = {} }, ref) => {
+const PersonalSection = forwardRef(({ profileImage, handleImageUpload, data, onChange, errors}, ref) => {
     const handleInputChange = (field, value) => {
         onChange({ [field]: value });
     };
@@ -39,19 +39,20 @@ const PersonalSection = forwardRef(({ profileImage, handleImageUpload, data, onC
                         onChange={(val) => handleInputChange("country", val)}
                         showSearch
                     />
-                    <FormInput label="Address" value={data.address || ""} onChange={(val) => handleInputChange("address", val)}  error = {false}/>
+                    <FormInput label="Address" value={data.address || ""} onChange={(val) => handleInputChange("address", val)}/>
                     <CustomSelect
                         label="Gender"
                         optionsList={["Male", "Female", "Others"]}
                         value={data.gender || ""}
                         onChange={(val) => handleInputChange("gender", val)}
                     />
-                    <FormDateInput label="Birthdate" value={data.birthdate || ""} onChange={(val) => handleInputChange("birthdate", val)} />
+                    <FormDateInput label="Birthdate" value={data.birthdate || ""} onChange={(val) => handleInputChange("birthdate", val)} error={errors.birthdate} />
                     <CustomSelect
                         label="Marital Status"
                         optionsList={["Single", "Married", "Common Law", "Domestic Partnership"]}
                         value={data.maritalStatus || ""}
                         onChange={(val) => handleInputChange("maritalStatus", val)}
+                        error={errors.maritalStatus}
                         required
                     />
                 </div>
@@ -60,9 +61,9 @@ const PersonalSection = forwardRef(({ profileImage, handleImageUpload, data, onC
             <div>
                 <h3 className="text-lg mb-4 text-gray-600">Contact</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormInput label="Phone Number" type="tel" value={data.phone || ""} onChange={(val) => handleInputChange("phone", val)} />
-                    <FormInput label="Work Email" type="email" required value={data.workEmail || ""} onChange={(val) => handleInputChange("workEmail", val)} errors={errors.personalEmail || {}}/>
-                    <FormInput label="Personal Email" type="email" value={data.personalEmail || ""} onChange={(val) => handleInputChange("personalEmail", val)} errors={errors.personalEmail || {}} />
+                    <FormInput label="Phone Number" type="tel" value={data.phone || ""} onChange={(val) => handleInputChange("phone", val)} error={errors.phone}/>
+                    <FormInput label="Work Email" type="email" required value={data.workEmail || ""} onChange={(val) => handleInputChange("workEmail", val)} error={errors.workEmail}/>
+                    <FormInput label="Personal Email" type="email" value={data.personalEmail || ""} onChange={(val) => handleInputChange("personalEmail", val)} error={errors.personalEmail} />
                 </div>
             </div>
         </section>

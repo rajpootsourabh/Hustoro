@@ -15,6 +15,7 @@ import CreateJob from "./Dashboard/Pages/Jobs/CreateJob";
 import Employee from "./Dashboard/Pages/Employee/Employee"
 import CreateProfile from "./Dashboard/Pages/Employee/CreateProfile"
 import EditProfileLayout from "./Dashboard/Pages/Employee/EditProfileLayout"
+import NotFound from "./Pages/NotFoundPage";
 
 function App() {
 
@@ -39,6 +40,9 @@ function App() {
           {/* Special Route WITHOUT Navbar */}
           <Route path="/dashboard/employee/new" element={<CreateProfile />} />
           <Route path="/dashboard/employee/edit" element={<EditProfileLayout />} />
+
+           {/* Catch-all route for 404 page */}
+           <Route path="*" element={<NotFound />} /> 
         </Routes>
       </Suspense>
     </>

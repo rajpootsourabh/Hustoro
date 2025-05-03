@@ -16,46 +16,41 @@ const ExperienceSection = forwardRef(({ data = {}, onChange, errors = {} }, ref)
             <h2 className="text-xl mb-4">Experience</h2>
 
             <div className="mb-10">
-                <h3 className="text-lg mb-4 text-gray-600">Education</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <FormInput
-                        label="Education Details"
-                        value={data.education || ""}
-                        onChange={(val) => handleChange("education", val)}
-                    />
-                </div>
-            </div>
+                    <div>
+                        <h3 className="text-lg mb-4 text-gray-600">Education</h3>
+                        <FormInput
+                            label="Education Details"
+                            value={data.education || ""}
+                            onChange={(val) => handleChange("education", val)}
+                        />
+                    </div>
+                    <div>
+                        <h3 className="text-lg mb-4 text-gray-600">Work Experience</h3>
+                        <FormInput
+                            label="Job Details"
+                            value={data.job || ""}
+                            onChange={(val) => handleChange("job", val)}
+                        />
+                    </div>
 
-            <div className="mb-10">
-                <h3 className="text-lg mb-4 text-gray-600">Work Experience</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <FormInput
-                        label="Job Details"
-                        value={data.job || ""}
-                        onChange={(val) => handleChange("job", val)}
-                    />
-                </div>
-            </div>
+                    <div>
+                        <h3 className="text-lg mb-4 text-gray-600">Skills</h3>
+                        <FormInput
+                            label="Skill"
+                            value={data.skill || ""}
+                            onChange={(val) => handleChange("skill", val)}
+                        />
+                    </div>
 
-            <div className="mb-10">
-                <h3 className="text-lg mb-4 text-gray-600">Skills</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <FormInput
-                        label="Skill"
-                        value={data.skill || ""}
-                        onChange={(val) => handleChange("skill", val)}
-                    />
-                </div>
-            </div>
-
-            <div className="mb-10">
-                <h3 className="text-lg mb-4 text-gray-600">Languages</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <FormInput
-                        label="Language"
-                        value={data.language || ""}
-                        onChange={(val) => handleChange("language", val)}
-                    />
+                    <div>
+                        <h3 className="text-lg mb-4 text-gray-600">Languages</h3>
+                        <FormInput
+                            label="Language"
+                            value={data.language || ""}
+                            onChange={(val) => handleChange("language", val)}
+                        />
+                    </div>
                 </div>
             </div>
 

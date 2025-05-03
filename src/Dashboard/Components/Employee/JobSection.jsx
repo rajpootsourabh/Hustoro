@@ -5,7 +5,7 @@ import MultiLevelSelect from "../../../Dashboard/Components/MultiLevelSelect";
 import CustomSelect from "../CustomSelect";
 import { entityOptionsData, departmentOptionsData } from "../../../utils/selectOptionsData";
 
-const JobSection = forwardRef(({ data, onChange, errors = {} }, ref) => {
+const JobSection = forwardRef(({ data, onChange, errors}, ref) => {
     const handleChange = (field, value) => {
         onChange({ [field]: value });
     };
@@ -23,19 +23,20 @@ const JobSection = forwardRef(({ data, onChange, errors = {} }, ref) => {
                         required
                         value={data.jobTitle || ""}
                         onChange={(val) => handleChange("jobTitle", val)}
-                        errors={errors.jobTitle || {}}
+                        error={errors.jobTitle || {}}
                     />
                     <FormDateInput
                         label="Hire Date"
                         value={data.hireDate || ""}
                         onChange={(val) => handleChange("hireDate", val)}
+                        error={errors.hireDate}
                     />
                     <FormDateInput
                         label="Start Date"
                         required
                         value={data.startDate || ""}
                         onChange={(val) => handleChange("startDate", val)}
-                        errors={errors.startDate || {}}
+                        error={errors?.startDate}
                     />
                     <MultiLevelSelect
                         label="Entity"
@@ -64,6 +65,8 @@ const JobSection = forwardRef(({ data, onChange, errors = {} }, ref) => {
                         label="Manager"
                         value={data.manager || ""}
                         onChange={(val) => handleChange("manager", val)}
+                        required
+                        error={errors.manager}
                     />
                 </div>
             </div>
@@ -80,7 +83,7 @@ const JobSection = forwardRef(({ data, onChange, errors = {} }, ref) => {
                         required
                         value={data.effectiveDate || ""}
                         onChange={(val) => handleChange("effectiveDate", val)}
-                        // errors={errors.effectiveDate || {}}
+                        error={errors.effectiveDate || {}}
                     />
                     <CustomSelect
                         label="Employment Type"
@@ -88,7 +91,7 @@ const JobSection = forwardRef(({ data, onChange, errors = {} }, ref) => {
                         required
                         value={data.employmentType || ""}
                         onChange={(val) => handleChange("employmentType", val)}
-                        errors={errors.employmentType || {}}
+                        error={errors?.employmentType}
                     />
                     <CustomSelect
                         label="Workplace"

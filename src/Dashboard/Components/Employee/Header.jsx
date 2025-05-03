@@ -1,6 +1,12 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Header({ onSubmit, isFormDirty, onSaveDraft }) {
+    const navigate = useNavigate(); // ✅ get the navigate function
+
+    const handleCancel = () => {
+        navigate("/dashboard/employee");
+    };
     return (
         <header className="sticky top-0 z-50 bg-white shadow-sm px-6">
             <div className="max-w-7xl mx-auto py-4 flex justify-between items-center">
@@ -11,7 +17,7 @@ export default function Header({ onSubmit, isFormDirty, onSaveDraft }) {
                     </p>
                 </div>
                 <div className="flex items-center gap-4">
-                    <button className="text-sm text-gray-500 hover:underline">
+                    <button onClick={handleCancel} className="text-sm text-gray-500 hover:underline">
                         Cancel
                     </button>
                     <button

@@ -18,6 +18,7 @@ const CompensationBenefitsSection = forwardRef(({ data, onChange, errors = {} },
                             label="Salary Details"
                             value={data.salaryDetails || ""}
                             onChange={(val) => handleInputChange("salaryDetails", val)}
+                           
                         />
                     </div>
                 </div>
@@ -31,14 +32,14 @@ const CompensationBenefitsSection = forwardRef(({ data, onChange, errors = {} },
                         required
                         value={data.bankName || ""}
                         onChange={(val) => handleInputChange("bankName", val)}
-                        errors={errors.bankName || {}}
+                        error={errors.bankName || {}}
                     />
                     <FormInput
                         label="IBAN"
                         required
                         value={data.iban || ""}
                         onChange={(val) => handleInputChange("iban", val)}
-                        errors={errors.iban || {}}
+                        error={errors.iban || {}}
                     />
                     <div className="md:col-span-2">
                         <FormInput

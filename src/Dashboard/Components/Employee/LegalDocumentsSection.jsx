@@ -21,7 +21,7 @@ const LegalDocumentsSection = forwardRef(({ data = {}, onChange, errors = {} }, 
                         required
                         value={data.socialSecurityNumber || ""}
                         onChange={(val) => handleChange("socialSecurityNumber", val)}
-                        errors={errors.socialSecurityNumber || {}}
+                        error={errors.socialSecurityNumber || {}}
                     />
                     <FormDateInput
                         label="Issue Date (SSN)"
@@ -43,7 +43,7 @@ const LegalDocumentsSection = forwardRef(({ data = {}, onChange, errors = {} }, 
                         required
                         value={data.nationalId || ""}
                         onChange={(val) => handleChange("nationalId", val)}
-                        errors={errors.nationalId || {}}
+                        error={errors.nationalId || {}}
                     />
                     <FormDateInput
                         label="Issue Date (National ID)"
@@ -71,7 +71,7 @@ const LegalDocumentsSection = forwardRef(({ data = {}, onChange, errors = {} }, 
                         required
                         value={data.taxId || ""}
                         onChange={(val) => handleChange("taxId", val)}
-                        errors={errors.taxId || {}}
+                        error={errors.taxId || {}}
                     />
                     <FormDateInput
                         label="Issue Date (Tax ID)"
