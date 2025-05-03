@@ -1,19 +1,26 @@
 import { useState, useEffect, useRef } from "react";
-import { FiSearch } from "react-icons/fi"; 
+import { FiSearch, FiX } from "react-icons/fi";
 
-export default function CustomSelect({ label, optionsList = [], placeholder = "", showSearch = false }) {
+export default function CustomSelect({
+  label,
+  optionsList = [],
+  placeholder = "",
+  showSearch = false,
+  required = false,
+  error,
+  onChange = () => {},
+}) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedValue, setSelectedValue] = useState("");
   const [open, setOpen] = useState(false);
 
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
 
-  const filteredCountries = optionsList.filter((country) =>
-    country.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredOptions = optionsList.filter((option) =>
+    option.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Close dropdown if clicked outside of the component
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -25,65 +32,87 @@ export default function CustomSelect({ label, optionsList = [], placeholder = ""
         setOpen(false);
       }
     };
-
-    // Listen for click events on the document
     document.addEventListener("click", handleClickOutside);
-
-    // Cleanup the event listener on component unmount
     return () => {
       document.removeEventListener("click", handleClickOutside);
     };
   }, []);
 
+  const handleClear = (e) => {
+    e.stopPropagation();
+    setSelectedValue("");
+    setSearchTerm("");
+  };
+
+  const handleSelect = (option) => {
+    setSelectedValue(option);
+    setOpen(false);
+    setSearchTerm("");
+    onChange(option);
+  };
+
+  const borderStyle = `border ${error ? "border-red-500" : "border-gray-300"}`;
+
   return (
     <div className="relative w-full">
-      {/* Label with consistent text size */}
       <label className="block text-sm mb-1">
+        {required && <span className="text-red-500 mr-1">*</span>}
         {label}
       </label>
 
-      {/* Dropdown Button */}
       <div
         onClick={() => setOpen(!open)}
         ref={inputRef}
-        className="border rounded-md px-3 h-10 flex justify-between items-center cursor-pointer text-sm bg-white w-full"
+        className={`rounded-md px-3 h-10 flex justify-between items-center cursor-pointer text-sm bg-white w-full ${borderStyle}`}
       >
-        <span className={`text-sm ${selectedCountry ? "" : "text-gray-400"} w-full`}>
-          {selectedCountry || placeholder}
-        </span>
-        <svg
-          className={`w-4 h-4 transform transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
+        <span
+          className={`text-sm ${selectedValue ? "" : "text-gray-400"} w-full truncate`}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
+          {selectedValue || placeholder}
+        </span>
+
+        <div className="flex items-center gap-1">
+          {selectedValue && (
+            <FiX
+              className="w-4 h-4 text-gray-500 hover:text-grey-600 cursor-pointer"
+              onClick={handleClear}
+            />
+          )}
+          {!selectedValue && (
+            <svg
+              className={`w-4 h-4 transform transition-transform ${open ? "rotate-180" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          )}
+        </div>
       </div>
 
-      {/* Dropdown list */}
+      {error && typeof error === "string" && (
+        <p className="text-red-500 text-xs mt-1">{error}</p>
+      )}
+
       {open && (
         <div
           ref={dropdownRef}
           className="absolute mt-1 w-full border rounded-md bg-white shadow-md z-10 max-h-60 overflow-y-auto"
         >
-          {/* Conditionally render search bar based on showSearch prop */}
           {showSearch && (
             <div className="sticky top-0 bg-white p-3">
               <div className="flex items-center gap-2 px-2 py-[2px] rounded-md border">
                 <FiSearch className="text-gray-400 w-5 h-5" />
-                {/* Search Input with placeholder */}
                 <input
                   type="text"
-                  className="outline-none text-sm w-full py-2" // Adjusted to match other inputs
+                  className="outline-none text-sm w-full py-2"
                   placeholder="Search"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -93,22 +122,17 @@ export default function CustomSelect({ label, optionsList = [], placeholder = ""
             </div>
           )}
 
-          {/* List of optionsList */}
           <ul className="p-3">
-            {filteredCountries.length > 0 ? (
-              filteredCountries.map((country, index) => (
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option, index) => (
                 <li
                   key={index}
                   className={`text-sm px-4 py-2 hover:bg-yellow-50 cursor-pointer ${
-                    country === selectedCountry ? "bg-yellow-100" : ""
+                    option === selectedValue ? "bg-yellow-100" : ""
                   }`}
-                  onClick={() => {
-                    setSelectedCountry(country);
-                    setOpen(false);
-                    setSearchTerm("");
-                  }}
+                  onClick={() => handleSelect(option)}
                 >
-                  {country}
+                  {option}
                 </li>
               ))
             ) : (

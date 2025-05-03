@@ -1,13 +1,20 @@
 import { User, Camera } from 'lucide-react';
 
 export default function ProfileImageUpload({ profileImage, handleImageUpload }) {
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            handleImageUpload(file); // Send only the file to the parent
+        }
+    };
+
     return (
         <div className="flex items-center gap-6 mb-8">
             <div className="relative">
                 <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden border-2 border-gray-300">
                     {profileImage ? (
                         <img
-                            src={profileImage}
+                            src={typeof profileImage === 'string' ? profileImage : URL.createObjectURL(profileImage)}
                             alt="Profile"
                             className="w-full h-full object-cover"
                         />
@@ -29,7 +36,7 @@ export default function ProfileImageUpload({ profileImage, handleImageUpload }) 
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={handleImageUpload}
+                    onChange={handleFileChange} // 🔁 fixed
                 />
             </div>
             <div>
