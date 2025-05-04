@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import FormInput from "./FormInput";
 
-const EmergencySection = forwardRef(({ data, onChange, errors = {} }, ref) => {
+const EmergencySection = forwardRef(({ data, onChange, errors }, ref) => {
     const handleInputChange = (field, value) => {
         onChange({ [field]: value });
     };
