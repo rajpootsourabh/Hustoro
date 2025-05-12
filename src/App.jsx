@@ -10,12 +10,13 @@ import Dashboard from "./Dashboard/Pages/Dashboard";
 import ScrollToTop from "./Components/ScrollToTop";
 import Jobs from "./Dashboard/Pages/Jobs/Jobs";
 import DashboardLayout from "./Dashboard/DashboardLayout";
-import Candidates from "./Dashboard/Pages/Candidates";
 import CreateJob from "./Dashboard/Pages/Jobs/CreateJob";
 import Employee from "./Dashboard/Pages/Employee/Employee"
 import CreateProfile from "./Dashboard/Pages/Employee/CreateProfile"
-import EditProfileLayout from "./Dashboard/Pages/Employee/EditProfileLayout"
+import EmployeeProfileForm from "./Dashboard/Pages/Employee/EmployeeProfileForm"
 import NotFound from "./Pages/NotFoundPage";
+import Candidate from "./Dashboard/Pages/Candidates/Candidates";
+
 
 function App() {
 
@@ -31,23 +32,34 @@ function App() {
           <Route path="/signin" element={<Login />} />
 
           <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="jobs" element={<Jobs />} />
-            <Route path="jobs/create-job" element={<CreateJob />} />
-            <Route path="employee" element={<Employee />} />
-            <Route path="candidates" element={<Candidates />} />
-          </Route>
-          {/* Special Route WITHOUT Navbar */}
-          <Route path="/dashboard/employee/new" element={<CreateProfile />} />
-          <Route path="/dashboard/employee/edit" element={<EditProfileLayout />} />
 
-           {/* Catch-all route for 404 page */}
-           <Route path="*" element={<NotFound />} /> 
+            {/* Dashboard Home */}
+            <Route index element={<Dashboard />} />
+
+            {/* Jobs Management */}
+            <Route path="jobs" element={<Jobs />} />
+            <Route path="jobs/new" element={<CreateJob />} />
+
+            {/* Employees Management */}
+            <Route path="employees" element={<Employee />} />
+            <Route path="candidates" element={<Candidate />} />
+          </Route>
+
+          {/* Special Route WITHOUT Navbar */}
+          <Route path="/dashboard/employee/new" element={<EmployeeProfileForm />} />
+          <Route path="/dashboard/employee/:employeeId/edit" element={<EmployeeProfileForm />} />
+
+          {/* Catch-all route for 404 page */}
+          <Route path="*" element={<NotFound />} />
+
         </Routes>
       </Suspense>
-      
+
     </>
   )
 }
 
 export default App
+
+
+

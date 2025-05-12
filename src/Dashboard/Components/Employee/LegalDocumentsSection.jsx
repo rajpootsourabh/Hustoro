@@ -4,7 +4,7 @@ import FormDateInput from "./FormDateInput";
 import FileUpload from "./FileUpload";
 import FormSelect from "./FormSelect";
 
-const LegalDocumentsSection = forwardRef(({ data = {}, onChange, errors = {} }, ref) => {
+const LegalDocumentsSection = forwardRef(({ data, onChange, errors = {} }, ref) => {
     const handleChange = (field, value) => {
         onChange({ [field]: value });
     };
@@ -21,7 +21,7 @@ const LegalDocumentsSection = forwardRef(({ data = {}, onChange, errors = {} }, 
                         required
                         value={data.socialSecurityNumber || ""}
                         onChange={(val) => handleChange("socialSecurityNumber", val)}
-                        error={errors.socialSecurityNumber || {}}
+                        error={errors.socialSecurityNumber}
                     />
                     <FormDateInput
                         label="Issue Date (SSN)"
@@ -43,13 +43,13 @@ const LegalDocumentsSection = forwardRef(({ data = {}, onChange, errors = {} }, 
                         required
                         value={data.nationalId || ""}
                         onChange={(val) => handleChange("nationalId", val)}
-                        error={errors.nationalId || {}}
+                        error={errors.nationalId}
                     />
                     <FormDateInput
                         label="Issue Date (National ID)"
                         value={data.issueDateNationalId || ""}
                         onChange={(val) => handleChange("issueDateNationalId", val)}
-    
+
                     />
                     <div className="md:col-span-2">
                         <FileUpload
@@ -71,7 +71,7 @@ const LegalDocumentsSection = forwardRef(({ data = {}, onChange, errors = {} }, 
                         required
                         value={data.taxId || ""}
                         onChange={(val) => handleChange("taxId", val)}
-                        error={errors.taxId || {}}
+                        error={errors.taxId}
                     />
                     <FormDateInput
                         label="Issue Date (Tax ID)"

@@ -1,23 +1,27 @@
-import { useState, useEffect, useRef } from "react";
-import { useSnackbar } from "../../../Dashboard/Components/SnackbarContext"; // import useSnackbar hook
-import Header from "../../../Dashboard/Components/Employee/Header";
-import Sidebar from "../../../Dashboard/Components/Employee/Sidebar";
-import MobileSidebar from "../../../Dashboard/Components/Employee/MobileSidebar";
-import ProgressCard from "../../../Dashboard/Components/Employee/ProgressCard";
-import PersonalSection from "../../../Dashboard/Components/Employee/PersonalSection";
-import JobSection from "../../../Dashboard/Components/Employee/JobSection";
-import CompensationBenefitsSection from "../../../Dashboard/Components/Employee/CompensationBenefitsSection";
-import LegalDocumentsSection from "../../../Dashboard/Components/Employee/LegalDocumentsSection";
-import ExperienceSection from "../../../Dashboard/Components/Employee/ExperienceSection";
-import EmergencySection from "../../../Dashboard/Components/Employee/EmergencySection";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useSnackbar } from "../../Components/SnackbarContext"; // import useSnackbar hook
+import Header from "../../Components/Employee/Header";
+import Sidebar from "../../Components/Employee/Sidebar";
+import MobileSidebar from "../../Components/Employee/MobileSidebar";
+import ProgressCard from "../../Components/Employee/ProgressCard";
+import PersonalSection from "../../Components/Employee/PersonalSection";
+import JobSection from "../../Components/Employee/JobSection";
+import CompensationBenefitsSection from "../../Components/Employee/CompensationBenefitsSection";
+import LegalDocumentsSection from "../../Components/Employee/LegalDocumentsSection";
+import ExperienceSection from "../../Components/Employee/ExperienceSection";
+import EmergencySection from "../../Components/Employee/EmergencySection";
 import Loader from "../../Components/Loader";
-import { useLocation } from "react-router-dom";
-import { validateCompensationBenefits, validateEmergencyContact, validateExperience, validateJobInfo, validateLegalDocuments, validatePersonalInfo } from "../../../utils/validateEmpData";
+import { useNavigate, useParams } from "react-router-dom";
+import { validateCompensationBenefits, validateEmergencyContact, validateExperience, validateJobInfo, validateLegalDocuments, validatePersonalInfo, appendFormData } from "../../../utils/validators/employeeFormValidator";
+import { convertKeysToCamel } from "../../../utils/caseConverter";
 
 
-export default function EditProfileLayout() {
-    const location = useLocation();
+const EmployeeProfileForm = () => {
+    const navigate = useNavigate();
+    const { employeeId } = useParams();
+    const isEditMode = Boolean(employeeId);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSavingDraft, setIsSavingDraft] = useState(false);
     const { showSnackbar } = useSnackbar(); // Get the showSnackbar function from the context
     const [activeSection, setActiveSection] = useState("Personal");
     const [profileImage, setProfileImage] = useState(null);
@@ -29,6 +33,22 @@ export default function EditProfileLayout() {
         experience: {},
         emergency: {},
     });
+
+    // function appendFormData(formData, data, parentKey = '') {
+    //     for (const key in data) {
+    //         const value = data[key];
+    //         const fullKey = parentKey ? `${parentKey}[${key}]` : key;
+
+    //         if (value instanceof File || value instanceof Blob) {
+    //             formData.append(fullKey, value);
+    //         } else if (typeof value === 'object' && value !== null) {
+    //             appendFormData(formData, value, fullKey); // recurse for nested object
+    //         } else {
+    //             formData.append(fullKey, value ?? ''); // treat null/undefined as empty string
+    //         }
+    //     }
+    // }
+
 
     const validateForm = () => {
         const personalErrors = validatePersonalInfo(formData.personal);
@@ -59,28 +79,68 @@ export default function EditProfileLayout() {
     };
 
 
-    const preFilledData = location.state?.form;
-    console.log(preFilledData)
+    // const preFilledData = useMemo(() => {
+    //     return convertKeysToCamel(location.state?.employee);
+    // }, [location.state?.employee]);
 
     useEffect(() => {
-        if (preFilledData) {
-            setFormData((prev) => ({
-                ...prev,
-                personal: {
-                    ...prev.personal,
-                    firstName: preFilledData.firstName || "",
-                    lastName: preFilledData.lastName || "",
-                    personalEmail: preFilledData.personalEmail
-                },
-                job: {
-                    ...prev.job,
-                    jobTitle: preFilledData.jobTitle || "",
-                    startDate: preFilledData.startDate,
-                    entity: preFilledData.entity || ""
+        const fetchEmployeeData = async () => {
+            if (!employeeId) return;
+
+            setIsLoading(true);
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/v.1/employee/${employeeId}/details`, {
+                    headers: {
+                        "Authorization": "Bearer " + localStorage.getItem("access_token"),
+                    },
+                });
+
+                if (response.ok) {
+                    const employeeData = await response.json();
+                    const preFilledData = convertKeysToCamel(employeeData?.data || {});
+
+                    setFormData((prev) => ({
+                        personal: {
+                            ...prev.personal,
+                            ...preFilledData,
+                        },
+                        job: {
+                            ...prev.job,
+                            ...(preFilledData.jobDetail || {}),
+                        },
+                        compensationBenefits: {
+                            ...prev.compensationBenefits,
+                            ...(preFilledData.compensationDetail || {}),
+                        },
+                        legalDocuments: {
+                            ...prev.legalDocuments,
+                            ...(preFilledData.legalDocument || {}),
+                        },
+                        experience: {
+                            ...prev.experience,
+                            ...(preFilledData.experienceDetail || {}),
+                        },
+                        emergency: {
+                            ...prev.emergency,
+                            ...(preFilledData.emergencyContact || {}),
+                        },
+                    }));
+                } else {
+                    showSnackbar("Failed to fetch employee details", "error");
                 }
-            }));
-        }
-    }, [preFilledData]);
+            } catch (error) {
+                console.error("Error fetching employee details:", error);
+                showSnackbar("An error occurred while fetching employee data.", "error");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchEmployeeData();
+    }, [employeeId]);
+
+
+
 
     const [formData, setFormData] = useState({
         personal: {},
@@ -186,9 +246,7 @@ export default function EditProfileLayout() {
             });
 
             if (response.ok) {
-                const data = await response.json();
                 showSnackbar("Draft saved successfully!", "success");
-                console.log(data); // Handle data response from the server
                 setIsFormDirty(false); // Reset dirty flag after saving
             } else {
                 showSnackbar("Failed to save draft!", "error");
@@ -208,74 +266,58 @@ export default function EditProfileLayout() {
             showSnackbar("No changes to submit!", "warning");
             return;
         }
-        if (await validateForm()) {
+
+        const hasErrors = await validateForm();
+        if (hasErrors) {
             showSnackbar("Please fill all required fields before submitting.", "error");
             return;
         }
 
-        setIsLoading(true); // Start loading
+        setIsLoading(true);
 
         try {
             const formPayload = new FormData();
+            appendFormData(formPayload, formData);
 
-            // Loop through the formData to append each field to FormData
-            for (const sectionKey in formData) {
-                const sectionData = formData[sectionKey];
-                for (const fieldKey in sectionData) {
-                    const value = sectionData[fieldKey];
-
-                    // This formats keys like personal[firstName], job[jobTitle], etc.
-                    formPayload.append(`${sectionKey}[${fieldKey}]`, value);
-                }
+            // 👇 Laravel-compatible spoofing
+            if (isEditMode) {
+                formPayload.append('_method', 'PUT');
             }
 
-            // Log FormData entries for inspection
-            for (let [key, value] of formPayload.entries()) {
-                console.log(key, value);
-            }
+            const url = isEditMode
+                ? `http://127.0.0.1:8000/api/v.1/employee/${employeeId}`
+                : `http://127.0.0.1:8000/api/v.1/employee`;
 
-            // Make the POST request
-            const response = await fetch("http://127.0.0.1:8000/api/v.1/employee", {
-                method: "POST",
-                body: formPayload, // No need to stringify, FormData will handle it
+            const response = await fetch(url, {
+                method: 'POST', // Always use POST when sending FormData
+                body: formPayload,
                 headers: {
-                    // No need to manually set "Content-Type" for FormData
                     "Authorization": "Bearer " + localStorage.getItem("access_token"),
+                    // DO NOT manually set 'Content-Type' when sending FormData; browser will set the correct boundary
                 },
             });
 
             if (response.ok) {
-                const data = await response.json();
-                showSnackbar("Employee added successfully!", "success");
-                // ✅ Clear errors after successful submission
-                setErrors({
-                    personal: {},
-                    job: {},
-                    compensationBenefits: {},
-                    legalDocuments: {},
-                    experience: {},
-                    emergency: {},
-                });
+                showSnackbar(isEditMode ? "Employee updated successfully!" : "Employee added successfully!", "success");
                 setIsFormDirty(false);
+                // Navigate to employee list after success
+                navigate("/dashboard/employees");
             } else {
-                // If response is not OK, try to get the actual error message from the response body
-                const errorData = await response.json(); // Assuming the server sends an error message in JSON
+                const errorData = await response.json();
                 const errorMessages = errorData?.message;
-
                 if (errorMessages) {
-                    // Loop through each error field and show its message
                     const errorList = Object.values(errorMessages).flat();
-                    const errorMessage = errorList.join(' '); // Combine all error messages into a single string
+                    const errorMessage = errorList.join(' ');
                     showSnackbar(errorMessage, "error");
                 } else {
                     showSnackbar("Failed to submit employee data!", "error");
                 }
             }
         } catch (error) {
-            console.error("Error adding employee:", error);
-            showSnackbar("An error occurred while adding employee.", "error");
+            console.error("Error submitting employee:", error);
+            showSnackbar("An error occurred while submitting employee.", "error");
         } finally {
-            setIsLoading(false); // Stop loading
+            setIsLoading(false);
         }
     };
 
@@ -283,8 +325,9 @@ export default function EditProfileLayout() {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
-            {isLoading && <Loader message="Saving..." />} {/* Show loader while loading */}
+            {isLoading && <Loader message={isSavingDraft ? "Saving Draft..." : "Submitting..."} />} {/* Show loader while loading */}
             <Header
+                title={isEditMode ? "Edit Employee" : "Add New Employee"}
                 onSaveDraft={handleSaveDraft}  // Pass Save Draft function
                 onSubmit={handleSubmit}         // Pass Submit function
                 isFormDirty={isFormDirty}       // Pass form dirty state
@@ -353,3 +396,5 @@ export default function EditProfileLayout() {
         </div>
     );
 }
+
+export default EmployeeProfileForm

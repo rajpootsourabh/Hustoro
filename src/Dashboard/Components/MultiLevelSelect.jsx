@@ -15,16 +15,24 @@ export default function MultiLevelSelect({
     showSearch = false,
     required = false,
     error,
+    value,
     onChange,
 }) {
     const [query, setQuery] = useState("");
-    const [selectedValue, setSelectedValue] = useState("");
+    const [selectedValue, setSelectedValue] = useState(value ||"");
     const [expandedGroup, setExpandedGroup] = useState(null);
     const [filteredOptions, setFilteredOptions] = useState([]);
     const [open, setOpen] = useState(false);
 
     const containerRef = useRef(null);
     const allGroups = Object.keys(optionsList);
+
+    useEffect(() => {
+        if (value !== undefined) {
+          setSelectedValue(value);
+        }
+      }, [value]);
+      
 
     useEffect(() => {
         const handleClickOutside = (e) => {

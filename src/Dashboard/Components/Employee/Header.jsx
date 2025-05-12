@@ -1,17 +1,17 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Header({ onSubmit, isFormDirty, onSaveDraft }) {
+export default function Header({ title, onSubmit, isFormDirty, onSaveDraft }) {
     const navigate = useNavigate(); // ✅ get the navigate function
 
     const handleCancel = () => {
-        navigate("/dashboard/employee");
+        navigate("/dashboard/employees");
     };
     return (
         <header className="sticky top-0 z-50 bg-white shadow-sm px-6">
             <div className="max-w-7xl mx-auto py-4 flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl">Edit Profile</h1>
+                    <h1 className="text-2xl">{title}</h1>
                     <p className="text-gray-500 text-xs">
                         h, h5ty [Draft] - y6
                     </p>

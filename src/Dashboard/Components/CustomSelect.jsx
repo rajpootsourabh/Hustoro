@@ -8,10 +8,11 @@ export default function CustomSelect({
   showSearch = false,
   required = false,
   error,
+  value,
   onChange = () => {},
 }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedValue, setSelectedValue] = useState("");
+  const [selectedValue, setSelectedValue] = useState(value || "");
   const [open, setOpen] = useState(false);
 
   const dropdownRef = useRef(null);
@@ -20,6 +21,13 @@ export default function CustomSelect({
   const filteredOptions = optionsList.filter((option) =>
     option.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  useEffect(() => {
+    if (value !== undefined) {
+      setSelectedValue(value);
+    }
+  }, [value]);
+  
 
   useEffect(() => {
     const handleClickOutside = (event) => {

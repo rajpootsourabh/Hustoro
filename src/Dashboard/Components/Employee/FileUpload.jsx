@@ -1,10 +1,57 @@
 import { Upload, X, File } from 'lucide-react';
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 
-export default function FileUpload({ label, accept, onChange }) {
+export default function FileUpload({ label, accept = '', onChange, required = false }) {
     const [isDragging, setIsDragging] = useState(false);
     const [uploadedFile, setUploadedFile] = useState(null);
+    const [error, setError] = useState(null);
     const fileInputRef = useRef(null);
+
+    const allowedTypes = accept.split(',').map(type => type.trim().toLowerCase());
+
+    const isFileTypeAllowed = (file) => {
+        const fileName = file.name.toLowerCase();
+        const fileType = file.type;
+
+        return allowedTypes.some(type => {
+            if (type.startsWith('.')) {
+                return fileName.endsWith(type);
+            }
+            if (type.endsWith('/*')) {
+                return fileType.startsWith(type.split('/')[0]);
+            }
+            return fileType === type;
+        });
+    };
+
+    const validateFile = (file) => {
+        if (required && !file) {
+            setError('File is required.');
+            return false;
+        }
+
+        if (file && !isFileTypeAllowed(file)) {
+            setError(`Invalid file type. Allowed types: ${accept}`);
+            return false;
+        }
+
+        setError(null);
+        return true;
+    };
+
+    const handleFiles = (files) => {
+        const file = files[0];
+        if (!validateFile(file)) {
+            setUploadedFile(null);
+            if (onChange) onChange(null);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+
+        setUploadedFile(file);
+        setError(null);
+        if (onChange) onChange(file);
+    };
 
     const handleDragEnter = useCallback((e) => {
         e.preventDefault();
@@ -27,47 +74,50 @@ export default function FileUpload({ label, accept, onChange }) {
         e.preventDefault();
         e.stopPropagation();
         setIsDragging(false);
-        
+
         const files = e.dataTransfer.files;
         if (files && files.length > 0) {
             handleFiles(files);
         }
-    }, []);
+    }, [allowedTypes]);
 
     const handleFileChange = (e) => {
         const files = e.target.files;
         if (files && files.length > 0) {
             handleFiles(files);
-        }
-    };
-
-    const handleFiles = (files) => {
-        const file = files[0]; // Get the first file
-        setUploadedFile(file);
-        if (onChange) {
-            onChange(file);
+        } else if (required) {
+            setError('File is required.');
         }
     };
 
     const handleRemoveFile = (e) => {
-        e.stopPropagation(); // Prevent triggering the file input
+        e.stopPropagation();
         setUploadedFile(null);
-        if (onChange) {
-            onChange(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        if (required) {
+            setError('File is required.');
+        } else {
+            setError(null);
         }
-        // Reset file input to allow selecting the same file again
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
+        if (onChange) onChange(null);
     };
 
     const handleClick = () => {
         fileInputRef.current.click();
     };
 
+    // Optional: Validate on mount if required
+    useEffect(() => {
+        if (required && !uploadedFile) {
+            setError('File is required.');
+        }
+    }, [required, uploadedFile]);
+
     return (
         <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+                {label} {required && <span className="text-red-500">*</span>}
+            </label>
             <div 
                 className={`border-dashed border-2 rounded-md flex flex-col items-center justify-center p-6 transition-colors cursor-pointer ${
                     isDragging 
@@ -112,6 +162,9 @@ export default function FileUpload({ label, accept, onChange }) {
                             <p className="text-sm text-gray-600">
                                 <span className="text-teal-600 font-medium">Upload file</span> or drag and drop here
                             </p>
+                            {accept && (
+                                <p className="text-xs text-gray-400 mt-1">Allowed: {accept}</p>
+                            )}
                         </div>
                     </div>
                 )}
@@ -123,6 +176,9 @@ export default function FileUpload({ label, accept, onChange }) {
                     onChange={handleFileChange}
                 />
             </div>
+            {error && (
+                <p className="text-sm text-red-600 mt-2">{error}</p>
+            )}
         </div>
     );
 }

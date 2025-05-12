@@ -14,6 +14,7 @@ export const validatePersonalInfo = (personal) => {
   if (!personal.workEmail || !/\S+@\S+\.\S+/.test(personal.workEmail)) {
     errors.workEmail = "Work email is required and must be a valid email";
   }
+  
 
   // Optional Fields: Only validate if user entered something
 
@@ -140,3 +141,90 @@ export const validateEmergencyContact = (emergency) => {
 
   return errors;
 };
+
+
+
+// Utility functions
+
+export function appendFormData(formData, data, parentKey = '') {
+  for (const key in data) {
+      const value = data[key];
+      const fullKey = parentKey ? `${parentKey}[${key}]` : key;
+
+      if (value instanceof File || value instanceof Blob) {
+          formData.append(fullKey, value);
+      } else if (typeof value === 'object' && value !== null) {
+          appendFormData(formData, value, fullKey); // recurse for nested object
+      } else {
+          formData.append(fullKey, value ?? ''); // treat null/undefined as empty string
+      }
+  }
+}
+
+
+
+
+
+
+
+
+/**
+ * Cleans nested objects by removing empty/null/undefined values.
+ */
+// export function cleanNestedData(obj) {
+//   if (Array.isArray(obj)) {
+//     return obj.map(cleanNestedData).filter(item => item !== undefined && item !== null);
+//   }
+
+//   if (obj !== null && typeof obj === 'object') {
+//     const cleanedObj = {};
+
+//     for (const key in obj) {
+//       let value = obj[key];
+
+//       if (value === 'null') value = null;
+
+//       const isFileUrl = typeof value === 'string' && value.startsWith('http');
+
+//       if (value !== null && typeof value === 'object' && !isFileUrl) {
+//         const cleanedValue = cleanNestedData(value);
+//         if (
+//           (Array.isArray(cleanedValue) && cleanedValue.length > 0) ||
+//           (Object.keys(cleanedValue).length > 0)
+//         ) {
+//           cleanedObj[key] = cleanedValue;
+//         }
+//       } else if (
+//         value !== null &&
+//         value !== undefined &&
+//         value !== '' &&
+//         (isFileUrl || typeof value !== 'string' || value.trim() !== '')
+//       ) {
+//         cleanedObj[key] = value;
+//       }
+//     }
+
+//     return cleanedObj;
+//   }
+
+//   return obj;
+// }
+
+// /**
+//  * Appends nested data to FormData in key[subkey] format.
+//  */
+// export function appendFormData(formData, data, parentKey = '') {
+//   for (const key in data) {
+//     const value = data[key];
+//     const formKey = parentKey ? `${parentKey}[${key}]` : key;
+
+//     if (value instanceof File || value instanceof Blob) {
+//       formData.append(formKey, value);
+//     } else if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
+//       appendFormData(formData, value, formKey);
+//     } else {
+//       formData.append(formKey, value);
+//     }
+//   }
+// }
+

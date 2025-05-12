@@ -67,7 +67,7 @@ const Login = () => {
             password: values.password,
           };
   
-          const response = await axios.post('https://bipani.com/api/v.1/login', payload, {
+          const response = await axios.post('http://127.0.0.1:8000/api/v.1/login', payload, {
             headers: {
               'Content-Type': 'application/json',
             },

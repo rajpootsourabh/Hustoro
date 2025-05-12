@@ -32,14 +32,14 @@ const CompensationBenefitsSection = forwardRef(({ data, onChange, errors = {} },
                         required
                         value={data.bankName || ""}
                         onChange={(val) => handleInputChange("bankName", val)}
-                        error={errors.bankName || {}}
+                        error={errors.bankName}
                     />
                     <FormInput
                         label="IBAN"
                         required
                         value={data.iban || ""}
                         onChange={(val) => handleInputChange("iban", val)}
-                        error={errors.iban || {}}
+                        error={errors.iban}
                     />
                     <div className="md:col-span-2">
                         <FormInput

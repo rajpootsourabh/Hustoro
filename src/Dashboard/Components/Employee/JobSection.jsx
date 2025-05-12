@@ -23,7 +23,7 @@ const JobSection = forwardRef(({ data, onChange, errors}, ref) => {
                         required
                         value={data.jobTitle || ""}
                         onChange={(val) => handleChange("jobTitle", val)}
-                        error={errors.jobTitle || {}}
+                        error={errors.jobTitle}
                     />
                     <FormDateInput
                         label="Hire Date"
@@ -83,7 +83,7 @@ const JobSection = forwardRef(({ data, onChange, errors}, ref) => {
                         required
                         value={data.effectiveDate || ""}
                         onChange={(val) => handleChange("effectiveDate", val)}
-                        error={errors.effectiveDate || {}}
+                        error={errors.effectiveDate}
                     />
                     <CustomSelect
                         label="Employment Type"

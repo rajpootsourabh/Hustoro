@@ -1,6 +1,6 @@
 // src/components/Layout.js
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import DashboardNavbar from "./Components/DashboardNavbar"; // Import your navbar component
+import DashboardNavbar from "./Components/DashboardNavbar";
 import Loader from "./Components/Loader";
 import { useEffect, useState } from "react";
 import axios from "axios";
