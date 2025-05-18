@@ -16,6 +16,7 @@ import CreateProfile from "./Dashboard/Pages/Employee/CreateProfile"
 import EmployeeProfileForm from "./Dashboard/Pages/Employee/EmployeeProfileForm"
 import NotFound from "./Pages/NotFoundPage";
 import Candidate from "./Dashboard/Pages/Candidates/Candidates";
+import CandidateProfile from "./Dashboard/Pages/Candidates/CandidateProfile";
 
 
 function App() {
@@ -43,6 +44,7 @@ function App() {
             {/* Employees Management */}
             <Route path="employees" element={<Employee />} />
             <Route path="candidates" element={<Candidate />} />
+            <Route path="candidates/profile/:id" element={<CandidateProfile />} />
           </Route>
 
           {/* Special Route WITHOUT Navbar */}

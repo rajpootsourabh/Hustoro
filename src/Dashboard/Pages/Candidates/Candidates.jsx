@@ -4,6 +4,7 @@ import BottomCommandBar from '../../Components/Candidates/BottomCommandBar';
 import Loader from '../../Components/Loader';
 import { getTimeAgo } from '../../../utils/dateUtils';
 import { GoPerson } from 'react-icons/go';
+import { useNavigate } from 'react-router-dom';
 
 const Candidates = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -13,6 +14,7 @@ const Candidates = () => {
     const [filters, setFilters] = useState({ department: '', job: '', stage: '', tag: '' });
     const [openDropdown, setOpenDropdown] = useState(null);
     const [selectedIds, setSelectedIds] = useState([]);
+    const navigate = useNavigate();
 
 
     // Mock data - in a real app, you'd fetch this from an API
@@ -235,7 +237,7 @@ const Candidates = () => {
                         />
 
 
-                        <span>Candidate Search</span>
+                        <span>Candidate Information</span>
                     </div>
 
                     {/* Job Status Header */}
@@ -248,7 +250,8 @@ const Candidates = () => {
                     filteredCandidates.map((candidate) => (
                         <div
                             key={candidate.id}
-                            className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border-b-2 last:border-0 gap-4 sm:gap-6 hover:bg-gray-50 transition-colors"
+                            onClick={() => navigate(`/dashboard/candidates/profile/${candidate.id}`)}
+                            className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border-b-2 last:border-0 gap-4 sm:gap-6 hover:bg-gray-50 transition-colors cursor-pointer"
                         >
                             {/* Left */}
                             <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1 min-w-0">
@@ -256,6 +259,7 @@ const Candidates = () => {
                                     <input
                                         type="checkbox"
                                         checked={selectedIds.includes(candidate.id)}
+                                        onClick={(e) => e.stopPropagation()}
                                         onChange={() => toggleCandidateSelection(candidate.id)}
                                         className="w-5 h-5 accent-green-500 rounded-none"
                                     />

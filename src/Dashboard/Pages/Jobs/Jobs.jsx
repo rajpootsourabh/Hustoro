@@ -15,6 +15,42 @@ const Jobs = () => {
   const [selectedJob, setSelectedJob] = useState(null);
   const [animateOut, setAnimateOut] = useState(false);
   const navigate = useNavigate()
+  const [jobStats, setJobStats] = useState([]);
+
+  const getJobsStats = async () => {
+    try {
+      const response = await axios.get("http://127.0.0.1:8000/api/v.1/job-applications/stats", {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("access_token"),
+        },
+      });
+      if (response.status === 200 && response.data.status === 'success') {
+        const normalizedJobStats = response.data.data.map(stat => {
+          const stages = stat.stages || {};
+          return {
+            job_id: stat.job_id,
+            resource_count: stat.total || 0,
+            applied: stages["Applied"] || 0,
+            phone_screen: stages["Phone Screen"] || 0,
+            assessment: stages["Assessment"] || 0,
+            interview: stages["Interview"] || 0,
+            offer: stages["Offer"] || 0,
+            hired: stages["Hired"] || 0,
+            sourced: stages["Sourced"] || 0,
+            total_candidates: stat.total || 0,
+          };
+        });
+        setJobStats(normalizedJobStats);
+      } else {
+        showSnackbar("Failed to fetch job stats", "error");
+      }
+    } catch (error) {
+      console.error("Error fetching job stats:", error);
+      showSnackbar("Error fetching job stats", "error");
+    }
+  };
+
+
 
   useEffect(() => {
     changeTitle("Jobs");
@@ -61,34 +97,36 @@ const Jobs = () => {
   };
 
 
+
   const get_jobs_list = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       const response = await axios.get("http://127.0.0.1:8000/api/v.1/job/list", {
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer " + localStorage.getItem("access_token"),
-        }
-      })
+        },
+      });
       if (response.status === 200) {
         const sortedJobs = response.data.data.sort((a, b) => b.id - a.id);
-        setJobList([...sortedJobs])
+        setJobList([...sortedJobs]);
+        await getJobsStats();  // fetch stats only after jobs list is ready
       } else {
-        showSnackbar(response.data.message)
-        setJobList([])
+        showSnackbar(response.data.message);
+        setJobList([]);
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
       if (error.status === 401) {
-        navigate("/signin")
-        showSnackbar("Session expired, please login again", "error")
+        navigate("/signin");
+        showSnackbar("Session expired, please login again", "error");
       } else {
-        showSnackbar(error.response.data.message, "error")
-        setJobList([])
+        showSnackbar(error.response?.data?.message || "Error fetching jobs", "error");
+        setJobList([]);
       }
     }
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   return (
     <div className='w-full h-full flex flex-col justify-center items-center'>
@@ -108,9 +146,18 @@ const Jobs = () => {
           <div className='w-full min-h-[78vh] grid grid-flow-row px-32 gap-8 py-10'>
             {
               jobList.length
-                ? jobList.map((item) => (
-                  <Job key={item.id} job={item} onUploadClick={handleUploadClick} />
-                ))
+                ? jobList.map((item) => {
+                  // Find the stats for this job by job_id
+                  const stats = jobStats.find((s) => s.job_id === item.id) || {};
+                  return (
+                    <Job
+                      key={item.id}
+                      job={item}
+                      stats={stats}
+                      onUploadClick={handleUploadClick}
+                    />
+                  );
+                })
                 : <div className='bg-white h-fit flex justify-center items-center py-5 rounded-lg text-gray-800'>No Jobs</div>
             }
           </div>
