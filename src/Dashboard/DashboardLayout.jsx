@@ -26,7 +26,7 @@ const DashboardLayout = () => {
   // make an api call to verify the token and if failed then redirect to signin page
   const cache_cleaner = async()=>{
     try {
-      const response = await axios.get("https://bipani.com/api/v.1/cacheclear",{
+      const response = await axios.get("http://127.0.0.1:8000/api/v.1/cacheclear",{
         headers:{
           "Content-Type":"application/json",
           "Authorization":"Bearer "+localStorage.getItem("access_token"),

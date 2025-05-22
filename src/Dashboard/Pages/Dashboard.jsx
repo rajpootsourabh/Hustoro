@@ -11,7 +11,7 @@ const Dashboard = ({username}) => {
     const navigate = useNavigate()
     const handleLogout = async()=>{
         try {
-            let response = await axios.post('https://bipani.com/api/v.1/logout')
+            let response = await axios.post('http://127.0.0.1:8000/api/v.1/logout')
             console.log("response ",response)
             navigate("/")
         } catch (error) {

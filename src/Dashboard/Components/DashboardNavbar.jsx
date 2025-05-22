@@ -27,7 +27,7 @@ const DashboardNavbar = ({username}) => {
   const handleLogout = async()=>{
     try {
       setLoading(true)
-      const response = await axios.post('https://bipani.com/api/v.1/logout', {},{
+      const response = await axios.post('http://127.0.0.1:8000/api/v.1/logout', {},{
         headers:{
           "Content-Type":"application/json",
           "Authorization":"Bearer "+localStorage.getItem("access_token"),

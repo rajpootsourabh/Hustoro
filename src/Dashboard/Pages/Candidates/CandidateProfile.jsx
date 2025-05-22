@@ -12,6 +12,9 @@ import ResumeViewer from '../../Components/Candidates/ResumeViewer';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import ProfileImage from '../../Components/ProfileImage';
+import StagesDropdown from '../../Components/Candidates/StagesDropdown';
+import { getStageLabelFromNumber } from '../../../utils/stageUtils';
+import DisqualifyDropdown from '../../Components/Candidates/DisqualifyDropdown';
 
 
 export default function CandidateProfile() {
@@ -19,6 +22,29 @@ export default function CandidateProfile() {
     const { id } = useParams();
     const [candidateData, setCandidateData] = useState(null);
     const navigate = useNavigate();
+    const [stage, setStage] = useState('');
+
+    // ✅ Handle stage update
+    const updateStage = (nextStage) => {
+        setStage(nextStage); // Optimistically update UI
+
+        fetch(`http://localhost:8000/api/v.1/job-applications/${id}/set-stage`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem("access_token")}`
+            },
+            body: JSON.stringify({ stage_id: nextStage }),
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                console.log('Stage updated:', data);
+            })
+            .catch((err) => {
+                console.error('Failed to update stage:', err);
+            });
+    };
+
 
     const handleBack = () => {
         navigate('/dashboard/candidates');
@@ -32,7 +58,9 @@ export default function CandidateProfile() {
                         Authorization: `Bearer ${localStorage.getItem("access_token")}`
                     }
                 });
-                setCandidateData(response.data.data);
+                const candidate = response.data.data;
+                setCandidateData(candidate);
+                setStage(candidate.current_stage);
                 console.log("Fetched candidate data:", response.data);
             } catch (error) {
                 console.error("Error fetching candidate:", error);
@@ -104,24 +132,19 @@ export default function CandidateProfile() {
                                 </button>
 
                                 {/* Red Hand */}
-                                <div className="relative">
-                                    <button
-                                        data-tooltip-id="tooltip"
-                                        data-tooltip-content="Disqualify candidate"
-                                        className="px-2 py-[10px] rounded-md bg-red-100 text-red-600 flex items-center space-x-4"
-                                    >
-                                        <Hand size={16} />
-                                        <ChevronDown size={16} />
-                                    </button>
-                                </div>
+                                <DisqualifyDropdown onSelectReason={(reason) => {
+                                    // handle the selected reason here, for example:
+                                    console.log("Selected disqualification reason:", reason);
+                                    // You can also update some state or call API here
+                                }} />
 
                                 {/* Move to phone screen */}
-                                <button
-                                    className="bg-teal-700 text-white px-4 py-[8px] rounded-3xl flex items-center space-x-1"
-                                >
-                                    <span className="text-sm">Move to phone screen</span>
-                                    <ChevronDown size={16} />
-                                </button>
+                                <StagesDropdown
+                                    currentStage={stage}
+                                    stages={[1, 2, 3, 4, 5, 6]}
+                                    onSelect={updateStage}
+                                />
+
                                 {/* Global Tooltip Component */}
                                 <Tooltip id="tooltip" place="top" />
                             </div>
@@ -133,8 +156,8 @@ export default function CandidateProfile() {
                             <ProfileImage
                                 src={candidateData?.candidate?.profile_pic}
                                 alt="Profile"
-                                height={20}
-                                width={20}
+                                height={24}
+                                width={24}
                                 iconSize={50}
                             />
                             <div className="flex-grow text-center md:text-left">
@@ -160,9 +183,16 @@ export default function CandidateProfile() {
                                     0 <span className="ml-1 text-sm">Follow</span>
                                 </button>
                                 <p className="leading-tight mt-1 text-left">
-                                    <span className="text-[#050359] text-xs">{candidateData?.candidate?.designation || "No designation"}</span><br />
-                                    <span className="text-gray-600 text-xs">{candidateData?.job_post?.source_id || "Sourced"}</span>
+                                    <span className="text-[#050359] text-sm">
+                                        {candidateData?.candidate?.designation || "No designation"}
+                                        {candidateData?.current_stage && ` • ${getStageLabelFromNumber(candidateData.current_stage)}`}
+                                    </span>
+                                    <br />
+                                    <span className="text-gray-600 text-xs">
+                                        via <span className='text-xs text-black font-semibold'>{candidateData?.job_post?.source_id || "profile upload"}</span>
+                                    </span>
                                 </p>
+
                             </div>
                         </div>
 
@@ -228,8 +258,6 @@ export default function CandidateProfile() {
                     </div>
 
                 </div>
-                {/* <ResumePreview pdfSrc="https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf" /> */}
-
             </div>
         </div>
     );

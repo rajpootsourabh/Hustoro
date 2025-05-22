@@ -50,7 +50,7 @@ const JobsSample = () => {
   const get_jobs_list = async () => {
     try {
       setLoading(true)
-      const response = await axios.get("https://bipani.com/api/v.1/job/list", {
+      const response = await axios.get("http://127.0.0.1:8000/api/v.1/job/list", {
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer " + localStorage.getItem("access_token"),
