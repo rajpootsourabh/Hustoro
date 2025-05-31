@@ -16,7 +16,9 @@ import CreateProfile from "./Dashboard/Pages/Employee/CreateProfile"
 import EmployeeProfileForm from "./Dashboard/Pages/Employee/EmployeeProfileForm"
 import NotFound from "./Pages/NotFoundPage";
 import Candidate from "./Dashboard/Pages/Candidates/Candidates";
+import FindCandidates from "./Dashboard/Pages/Candidates/FindCandidates";
 import CandidateProfile from "./Dashboard/Pages/Candidates/CandidateProfile";
+import JobPreview from "./Dashboard/Pages/Jobs/JobPreview";
 
 
 function App() {
@@ -32,24 +34,23 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/signin" element={<Login />} />
 
+          {/* Protected Routes inside Layout */}
           <Route path="/dashboard" element={<DashboardLayout />}>
-
             {/* Dashboard Home */}
             <Route index element={<Dashboard />} />
-
             {/* Jobs Management */}
             <Route path="jobs" element={<Jobs />} />
             <Route path="jobs/new" element={<CreateJob />} />
-
+            <Route path="jobs/edit/:id" element={<CreateJob />} />
+            <Route path="jobs/overview/:id" element={<JobPreview />} />
+            <Route path="jobs/:jobId/candidates" element={<FindCandidates />} />
             {/* Employees Management */}
             <Route path="employees" element={<Employee />} />
+            <Route path="/dashboard/employee/new" element={<EmployeeProfileForm />} />
+            <Route path="/dashboard/employee/:employeeId/edit" element={<EmployeeProfileForm />} />
             <Route path="candidates" element={<Candidate />} />
             <Route path="candidates/profile/:id" element={<CandidateProfile />} />
           </Route>
-
-          {/* Special Route WITHOUT Navbar */}
-          <Route path="/dashboard/employee/new" element={<EmployeeProfileForm />} />
-          <Route path="/dashboard/employee/:employeeId/edit" element={<EmployeeProfileForm />} />
 
           {/* Catch-all route for 404 page */}
           <Route path="*" element={<NotFound />} />

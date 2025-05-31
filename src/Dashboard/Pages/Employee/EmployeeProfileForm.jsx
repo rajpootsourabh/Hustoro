@@ -89,7 +89,7 @@ const EmployeeProfileForm = () => {
 
             setIsLoading(true);
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/v.1/employee/${employeeId}/details`, {
+                const response = await fetch(`http://localhost:8000/api/v.1/employee/${employeeId}/details`, {
                     headers: {
                         "Authorization": "Bearer " + localStorage.getItem("access_token"),
                     },
@@ -285,8 +285,8 @@ const EmployeeProfileForm = () => {
             }
 
             const url = isEditMode
-                ? `http://127.0.0.1:8000/api/v.1/employee/${employeeId}`
-                : `http://127.0.0.1:8000/api/v.1/employee`;
+                ? `http://localhost:8000/api/v.1/employee/${employeeId}`
+                : `http://localhost:8000/api/v.1/employee`;
 
             const response = await fetch(url, {
                 method: 'POST', // Always use POST when sending FormData

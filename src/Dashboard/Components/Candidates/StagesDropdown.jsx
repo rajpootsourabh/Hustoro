@@ -24,10 +24,16 @@ export default function StagesDropdown({ currentStage = 1, stages = [], onSelect
 
   const isLoading = selectedStage === null || !stages.includes(selectedStage);
 
-  const label = isLoading
+  // const label = isLoading
+  //   ? "Loading..."
+  //   : nextStage
+  //     ? `Move to ${stageLabels[stageMap[nextStage-1]]}`
+  //     : `${stageLabels[stageMap[selectedStage]]}`;
+
+    const label = isLoading
     ? "Loading..."
     : nextStage
-      ? `Move to ${stageLabels[stageMap[nextStage]]}`
+      ? `${stageLabels[stageMap[nextStage-1]]}`
       : `${stageLabels[stageMap[selectedStage]]}`;
 
   const toggleDropdown = (e) => {

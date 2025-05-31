@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react'
 import Job from '../../Components/job'
 import { Link, useNavigate } from 'react-router-dom'
 import { changeTitle } from '../../../utils/changeTitle'
-import spinner from '../../../assets/green-spinner.svg'
 import axios from 'axios'
 import { useSnackbar } from '../../Components/SnackbarContext'
 import UploadCandidateForm from '../../Components/Candidates/UploadCandidateForm';
+import ConfirmModal from '../../Components/ConfirmModal'
 
 const Jobs = () => {
   const [loading, setLoading] = useState(false)
@@ -16,10 +16,14 @@ const Jobs = () => {
   const [animateOut, setAnimateOut] = useState(false);
   const navigate = useNavigate()
   const [jobStats, setJobStats] = useState([]);
+  const [confirmDeleteJob, setConfirmDeleteJob] = useState(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false);
+
 
   const getJobsStats = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/v.1/job-applications/stats", {
+      const response = await axios.get("http://localhost:8000/api/v.1/job-applications/stats", {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("access_token"),
         },
@@ -63,10 +67,110 @@ const Jobs = () => {
     setShowUploadForm(true);
   };
 
+  const handleEditJobClick = (job) => {
+    console.log("Editing job:", job);
+    navigate(`/dashboard/jobs/edit/${job.id}`);
+  };
+
+  const handleJobOverviewClick = (job) => {
+    console.log("Viewing job overview:", job);
+    navigate(`/dashboard/jobs/overview/${job.id}`);
+  };
+
+  const handleDuplicateJobClick = async (job) => {
+    try {
+      const fetchResponse = await axios.get(`http://127.0.0.1:8000/api/v.1/job/${job.id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      });
+
+      const originalJob = fetchResponse.data.data;
+
+      const duplicatedJob = {
+        job_title: `${originalJob.job_title} (Copy)`,
+        job_code: `${originalJob.job_code}-${Date.now()}`,
+        job_workplace: originalJob.job_workplace,
+        job_location: originalJob.job_location,
+        job_department: originalJob.job_department,
+        job_function: originalJob.job_function,
+        employment_type: originalJob.employment_type,
+        experience: originalJob.experience,
+        education: originalJob.education,
+        keywords: originalJob.keywords?.split(",").map(k => k.trim()) || [],
+        annual_salary_from: originalJob.from_salary,
+        annual_salary_to: originalJob.to_salary,
+        currency: originalJob.currency,
+        showOnCarrerPage: true,
+        job_description: originalJob.description,
+        job_requirements: originalJob.requirements,
+        job_benefits: originalJob.benefits,
+      };
+
+      const createResponse = await axios.post(`http://localhost:8000/api/v.1/job/create`, duplicatedJob, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (createResponse.status === 201) {
+        showSnackbar("Job duplicated successfully!", "success");
+        await get_jobs_list();
+      } else {
+        showSnackbar("Failed to duplicate job", "error");
+      }
+
+    } catch (error) {
+      console.error("Error duplicating job:", error);
+      showSnackbar(
+        error?.response?.data?.message || "Failed to duplicate job.",
+        "error"
+      );
+    }
+  };
+
+
+  const handleDeleteClick = (job) => {
+    setConfirmDeleteJob(job);
+    setIsConfirmModalOpen(true);
+  };
+  const confirmDelete = async () => {
+    if (!confirmDeleteJob) return;
+    setConfirmDeleteLoading(true); // Start loading
+    try {
+      const response = await fetch(`http://localhost:8000/api/v.1/job/delete/${confirmDeleteJob.id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        showSnackbar("Failed to delete job", "error");
+      } else {
+        setJobList((prevList) => prevList.filter((j) => j.id !== confirmDeleteJob.id));
+        showSnackbar("Job deleted successfully", "success");
+      }
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      showSnackbar("Failed to delete job", "error");
+    }
+    setConfirmDeleteLoading(false);
+    setIsConfirmModalOpen(false);
+    setConfirmDeleteJob(null);
+  };
+
+  const handleFindCandidateClick = (job) => {
+    console.log("Finding candidates for:", job);
+    navigate(`/dashboard/jobs/${job.id}/candidates`);
+  };
+
   const handleCandidateUpload = async (formData, showSnackbar) => {
     try {
       const res = await axios.post(
-        "http://127.0.0.1:8000/api/v.1/job-applications",
+        "http://localhost:8000/api/v.1/job-applications",
         formData,
         {
           headers: {
@@ -101,7 +205,7 @@ const Jobs = () => {
   const get_jobs_list = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://127.0.0.1:8000/api/v.1/job/list", {
+      const response = await axios.get("http://localhost:8000/api/v.1/job/list", {
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer " + localStorage.getItem("access_token"),
@@ -142,30 +246,40 @@ const Jobs = () => {
       </div>
       {
         !loading
-          ?
-          <div className='w-full min-h-[78vh] grid grid-flow-row px-32 gap-8 py-10'>
-            {
-              jobList.length
-                ? jobList.map((item) => {
-                  // Find the stats for this job by job_id
-                  const stats = jobStats.find((s) => s.job_id === item.id) || {};
-                  return (
-                    <Job
-                      key={item.id}
-                      job={item}
-                      stats={stats}
-                      onUploadClick={handleUploadClick}
-                    />
-                  );
-                })
-                : <div className='bg-white h-fit flex justify-center items-center py-5 rounded-lg text-gray-800'>No Jobs</div>
-            }
-          </div>
-          :
-          <div className='w-full min-h-[78vh] flex justify-center items-center px-32 text-green-600 gap-8 py-10'>
-            <img src={spinner} className="w-28 h-28 " alt="Loading..." />
-          </div>
+          ? (
+            <div className='w-full min-h-[78vh] grid grid-flow-row px-32 gap-8 py-10'>
+              {
+                jobList.length
+                  ? jobList.map((item) => {
+                    const stats = jobStats.find((s) => s.job_id === item.id) || {};
+                    return (
+                      <Job
+                        key={item.id}
+                        job={item}
+                        stats={stats}
+                        onUploadClick={handleUploadClick}
+                        onFindCandidateClick={handleFindCandidateClick}
+                        onFindDeleteClick={handleDeleteClick}
+                        onEditJobClick={handleEditJobClick}
+                        onJobOverviewClick={handleJobOverviewClick}
+                        onDuplicateJobClick={handleDuplicateJobClick}
+                        isLoading={false}
+                      />
+                    );
+                  })
+                  : <div className='bg-white h-fit flex justify-center items-center py-5 rounded-lg text-gray-800'>No Jobs</div>
+              }
+            </div>
+          )
+          : (
+            <div className='w-full min-h-[78vh] grid grid-flow-row px-32 gap-8 py-10'>
+              {Array.from({ length: 3 }).map((_, index) => (
+                <Job key={index} isLoading={true} />
+              ))}
+            </div>
+          )
       }
+
       {showUploadForm && (
         <div
           className={`fixed inset-0 bg-black bg-opacity-40 z-50 overflow-y-auto flex justify-center items-start pt-8 px-4 sm:px-6 
@@ -181,6 +295,20 @@ const Jobs = () => {
           </div>
         </div>
       )}
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => {
+          setIsConfirmModalOpen(false);
+          setConfirmDeleteJob(null);
+        }}
+        loadingState={confirmDeleteLoading}
+        onConfirm={confirmDelete}
+        title={`Delete Job "${confirmDeleteJob?.job_title}"?`}
+        description="Are you sure you want to delete this job? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmVariant="destructive"
+      />
     </div>
   )
 }

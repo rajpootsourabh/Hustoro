@@ -178,3 +178,22 @@ input[type="date"]::-moz-calendar-picker-indicator {
 }
 
 /* <------- Ends here (PDF Preview) -------> */
+
+/* Styles for Action Button */
+.dot {
+  width: 10px;
+  height: 10px;
+  background-color: white;
+  border-radius: 9999px;
+  display: inline-block;
+}
+
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+}
+

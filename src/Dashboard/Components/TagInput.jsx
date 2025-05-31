@@ -1,86 +1,86 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Autocomplete, TextField, Chip } from "@mui/material";
 
-// Predefined options
-const predefinedOptions = ["React", "JavaScript", "Django", "Python", "Node.js"];
-
-const TagInput = ({formik,keywords_list}) => {
+const TagInput = ({ formik, keywords_list }) => {
   const [tags, setTags] = useState([]);
 
+  // Sync tags when formik.values.keywords changes (especially useful when editing)
+  useEffect(() => {
+    if (Array.isArray(formik.values.keywords)) {
+      const uniqueKeywords = [...new Set(formik.values.keywords.map(k => k.trim()))];
+      const formatted = uniqueKeywords.map((label) => ({
+        label,
+        color: "#00756A",
+      }));
+      setTags(formatted);
+    }
+  }, [formik.values.keywords]);
+
   const handleChange = (_, newValues) => {
-    const prevTags = [...tags];
-    const lowerCaseTags = prevTags.map((tag) => tag.label.toLowerCase());
-    const newTags = newValues
-        .filter((val) => !lowerCaseTags.includes(val.toLowerCase())) // Prevent duplicates
-        .map((label) => ({
-          label,
-          color: "#00756A", // Fixed color for all tags
-        }));
-    setTags((prevTags) => [...prevTags, ...newTags]); // Append to existing tags
-    const tagvalues = [...prevTags, ...newTags].map((tag) => tag.label); // Get the label values of the tags
-    formik.setFieldValue("keywords", tagvalues); // Update Formik state
+    const existingLabels = tags.map((tag) => tag.label.toLowerCase());
+    const addedTags = newValues
+      .filter((val) => !existingLabels.includes(val.toLowerCase()))
+      .map((label) => ({ label, color: "#00756A" }));
+
+    const updatedTags = [...tags, ...addedTags];
+    setTags(updatedTags);
+    formik.setFieldValue("keywords", updatedTags.map((tag) => tag.label));
   };
 
-  const handleDelete = (tagToDelete) => {
-    const updatedTags = tags.filter((tag) => tag.label !== tagToDelete);
-    setTags(updatedTags);
-    const tagvalues = updatedTags.map((tag) => tag.label); // Get the label values of the tags
-    formik.setFieldValue("keywords", tagvalues); // Update Formik state
+  const handleDelete = (labelToDelete) => {
+    const filteredTags = tags.filter((tag) => tag.label !== labelToDelete);
+    setTags(filteredTags);
+    formik.setFieldValue("keywords", filteredTags.map((tag) => tag.label));
   };
-  // {console.log("formik.values.job_title ",formik.values.job_title)}
+
+  const allOptions = formik.values.job_title
+    ? keywords_list[formik.values.job_title] || []
+    : Object.values(keywords_list).flat();
+
+  const filteredOptions = allOptions.filter(
+    (option) => !tags.some((tag) => tag.label.toLowerCase() === option.toLowerCase())
+  );
+
   return (
     <Autocomplete
       multiple
       freeSolo
-      options={
-        formik.values.job_title
-        ?
-          keywords_list[formik.values.job_title].filter((option) => !tags.some((tag) => tag.label.toLowerCase() === option.toLowerCase()))
-        :
-          Object.keys(keywords_list).reduce((acc, key) => {
-            const options = keywords_list[key].filter((option) => !tags.some((tag) => tag.label.toLowerCase() === option.toLowerCase()));
-            return acc.concat(options);
-          }, [])
-        }
+      options={filteredOptions}
       value={tags.map((tag) => tag.label)}
       onChange={handleChange}
-      error={formik.touched.job_function && Boolean(formik.errors.job_function)}
-      helperText={formik.touched.job_function && formik.errors.job_function}
       filterOptions={(options, params) => {
-        const inputLower = params.inputValue.toLowerCase();
-        const filtered = options.filter((option) => !tags.some((tag) => tag.label.toLowerCase() === option.toLowerCase()));
-
-        if (params.inputValue !== "" && !tags.some((tag) => tag.label.toLowerCase() === inputLower)) {
-          filtered.push(params.inputValue); // Allow user to add custom input if not a duplicate
+        const input = params.inputValue.toLowerCase();
+        const notSelected = options.filter(
+          (option) => !tags.some((tag) => tag.label.toLowerCase() === option.toLowerCase())
+        );
+        if (input && !tags.some((tag) => tag.label.toLowerCase() === input)) {
+          notSelected.push(params.inputValue);
         }
-        return filtered;
+        return notSelected;
       }}
       renderTags={(value, getTagProps) =>
-        value.map((option, index) => {
-          const { key, onDelete } = getTagProps({ index });
-          return (
-            <Chip
-              key={key}
-              label={option}
-              onDelete={() => handleDelete(option)}
-              sx={{
-                backgroundColor: "#00756A", // Fixed tag color
-                color: "#fff",
-                margin: "4px", // Adds spacing between chips
-              }}
-            />
-          );
-        })
+        value.map((option, index) => (
+          <Chip
+            key={option}
+            label={option}
+            onDelete={() => handleDelete(option)}
+            sx={{
+              backgroundColor: "#00756A",
+              color: "#fff",
+              margin: "4px",
+            }}
+          />
+        ))
       }
-      renderInput={(params) => 
-        <TextField 
-          {...params} 
-          label="Keywords" 
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label="Keywords"
           variant="outlined"
-          error={formik.touched.keywords && Boolean(formik.errors.keywords)} // Pass error state
-          helperText={formik.touched.keywords && formik.errors.keywords} // Display error message 
+          error={formik.touched.keywords && Boolean(formik.errors.keywords)}
+          helperText={formik.touched.keywords && formik.errors.keywords}
         />
-      }
+      )}
     />
   );
 };

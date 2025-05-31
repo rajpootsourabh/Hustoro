@@ -1,320 +1,337 @@
 import { Search, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import BottomCommandBar from '../../Components/Candidates/BottomCommandBar';
-import Loader from '../../Components/Loader';
 import { getTimeAgo } from '../../../utils/dateUtils';
-import { GoPerson } from 'react-icons/go';
-import { useNavigate } from 'react-router-dom';
+import CandidateCard from '../../Components/Candidates/CandidateCard';
 
 const Candidates = () => {
-    const [isLoading, setIsLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [candidates, setCandidates] = useState([]);
-    const [filteredCandidates, setFilteredCandidates] = useState([]);
-    const [filters, setFilters] = useState({ department: '', job: '', stage: '', tag: '' });
-    const [openDropdown, setOpenDropdown] = useState(null);
-    const [selectedIds, setSelectedIds] = useState([]);
-    const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [candidates, setCandidates] = useState([]);
+  const [filteredCandidates, setFilteredCandidates] = useState([]);
+  const [filters, setFilters] = useState({ department: '', job: '', stage: '', tag: '' });
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
+  // Fetch candidates from API
+  useEffect(() => {
+    const fetchCandidates = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("http://localhost:8000/api/v.1/job-applications", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        });
 
-    // Mock data - in a real app, you'd fetch this from an API
-    useEffect(() => {
-        const fetchCandidates = async () => {
-            setIsLoading(true);
-            try {
-                // const response = await fetch("http://127.0.0.1:8000/api/v.1/job-applications", {
-                const response = await fetch("http://127.0.0.1:8000/api/v.1/job-applications", {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-                    },
-                });
+        const result = await response.json();
 
-                const result = await response.json();
+        if (result.status) {
+          const transformedCandidates = result.data.map(application => ({
+            id: application.id,
+            name: `${application.candidate.first_name} ${application.candidate.last_name}`,
+            status: application.status,
+            tag: '#developer',
+            jobTitle: application.job_post.job_title,
+            location: application.candidate.location,
+            country: application.candidate.country,
+            stage: 'Sourced',
+            source: 'Applied Stage',
+            time: getTimeAgo(application.applied_at),
+            img: application.candidate.profile_pic || null,
+            jobLocation: application.job_post.job_location,
+            designation: application.candidate.designation,
+            department: 'Engineering', // Example: assign department here or fetch it properly
+          }));
 
-                if (result.status) {
-                    const transformedCandidates = result.data.map(application => ({
-                        id: application.id,
-                        name: `${application.candidate.first_name} ${application.candidate.last_name}`,
-                        status: application.status,
-                        tag: '#developer',
-                        jobTitle: application.job_post.job_title,
-                        location: application.candidate.location,
-                        stage: 'Sourced',
-                        source: 'Applied Stage',
-                        time: getTimeAgo(application.applied_at),
-                        img: application.candidate.profile_pic || null
-                    }));
-
-                    setCandidates(transformedCandidates);
-                    setFilteredCandidates(transformedCandidates);
-                }
-            } catch (error) {
-                console.error("Failed to fetch candidates:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchCandidates();
-    }, []);
-
-
-    // Handle search and filtering
-    useEffect(() => {
-        let results = candidates;
-
-        // Apply search term filter
-        if (searchTerm) {
-            results = results.filter(candidate =>
-                candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                candidate.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                candidate.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                candidate.stage.toLowerCase().includes(searchTerm.toLowerCase())
-            );
+          setCandidates(transformedCandidates);
+          setFilteredCandidates(transformedCandidates);
+          setCurrentPage(1); // Reset to first page
         }
-
-        // Apply other filters
-        if (filters.department) {
-            results = results.filter(candidate =>
-                candidate.department === filters.department
-            );
-        }
-
-        if (filters.job) {
-            results = results.filter(candidate =>
-                candidate.jobTitle === filters.job
-            );
-        }
-
-        if (filters.stage) {
-            results = results.filter(candidate =>
-                candidate.stage === filters.stage
-            );
-        }
-
-        if (filters.tag) {
-            results = results.filter(candidate =>
-                candidate.tag === filters.tag
-            );
-        }
-
-        setFilteredCandidates(results);
-    }, [searchTerm, filters, candidates]);
-
-    const toggleCandidateSelection = (id) => {
-        setSelectedIds((prevSelected) =>
-            prevSelected.includes(id)
-                ? prevSelected.filter((selectedId) => selectedId !== id)
-                : [...prevSelected, id]
-        );
+      } catch (error) {
+        console.error("Failed to fetch candidates:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        // The useEffect will handle the filtering automatically
-    };
+    fetchCandidates();
+  }, []);
 
-    const handleFilterChange = (filterName, value) => {
-        setFilters(prev => ({
-            ...prev,
-            [filterName.toLowerCase()]: value
-        }));
-    };
+  // Filter candidates based on search term and filters
+  useEffect(() => {
+    let results = candidates;
 
-    if (isLoading) {
-        return (
-            <Loader message="Fetching candidates data..." />
-        );
+    if (searchTerm) {
+      results = results.filter(candidate =>
+        candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        candidate.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        candidate.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        candidate.stage.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
-    return (
-        <div className="bg-[#f5f5f5] min-h-screen p-6 space-y-6">
-            {/* Search Box */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 space-y-6">
-                <h2 className="text-lg font-semibold text-gray-800">Candidate Search</h2>
+    if (filters.department) {
+      results = results.filter(candidate =>
+        candidate.department === filters.department
+      );
+    }
 
-                <form onSubmit={handleSearch} className="flex items-center gap-4">
-                    <div className="flex items-center border rounded-md px-3 py-2 w-full max-w-xl">
-                        <Search className="text-gray-400 w-4 h-4 mr-2" />
-                        <input
-                            type="text"
-                            placeholder="Search all candidate using keyword"
-                            className="w-full outline-none text-sm text-gray-600"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                    <button
-                        type="submit"
-                        className="bg-teal-700 hover:bg-teal-600 text-white px-8 py-[10px] rounded-3xl font-medium text-sm"
-                    >
-                        Search
-                    </button>
-                </form>
+    if (filters.job) {
+      results = results.filter(candidate =>
+        candidate.jobTitle === filters.job
+      );
+    }
 
-                <hr />
+    if (filters.stage) {
+      results = results.filter(candidate =>
+        candidate.stage === filters.stage
+      );
+    }
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    {['Department', 'Job', 'Stage', 'Tag'].map((label) => (
-                        <div key={label} className="relative">
-                            <label className="absolute -top-2 left-3 px-1 text-sm bg-white text-gray-500 z-10">
-                                {label}
-                            </label>
-                            <select
-                                className="w-full px-3 py-3 text-sm border border-gray-300 rounded-lg appearance-none text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                onChange={(e) => handleFilterChange(label, e.target.value)}
-                                onFocus={() => setOpenDropdown(label)}         // NEW
-                                onBlur={() => setOpenDropdown(null)}           // NEW
-                            >
+    if (filters.tag) {
+      results = results.filter(candidate =>
+        candidate.tag === filters.tag
+      );
+    }
 
-                                <option value="">All {label}s</option>
-                                {label === 'Department' && (
-                                    <>
-                                        <option>HR</option>
-                                        <option>Engineering</option>
-                                        <option>Design</option>
-                                    </>
-                                )}
-                                {label === 'Job' && (
-                                    <>
-                                        <option>HR Executive</option>
-                                        <option>Software Engineer</option>
-                                        <option>UI/UX Designer</option>
-                                    </>
-                                )}
-                                {label === 'Stage' && (
-                                    <>
-                                        <option>Screening</option>
-                                        <option>Interview</option>
-                                        <option>Offer</option>
-                                    </>
-                                )}
-                                {label === 'Tag' && (
-                                    <>
-                                        <option>#candidate</option>
-                                        <option>#developer</option>
-                                        <option>#designer</option>
-                                    </>
-                                )}
-                            </select>
-                            <ChevronDown
-                                className={`pointer-events-none absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 transition-transform duration-200 ${openDropdown === label ? 'rotate-180' : ''}`}
-                            />
+    setFilteredCandidates(results);
+    setCurrentPage(1); // Reset page on filter/search change
+  }, [searchTerm, filters, candidates]);
 
-                        </div>
-                    ))}
-                </div>
+  // Pagination calculations
+  const totalCandidates = filteredCandidates.length;
+  const totalPages = Math.ceil(totalCandidates / pageSize);
+  const paginatedCandidates = filteredCandidates.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-6">
-                <div className="text-lg text-gray-800 font-medium mb-4 sm:mb-6">
-                    {filteredCandidates.length} Candidate{filteredCandidates.length !== 1 ? 's' : ''} Found
-                </div>
-
-                {/* Table Header */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b rounded-[4px] p-4 bg-red-50 mb-4 text-sm text-black gap-2 sm:gap-0">
-                    {/* Mobile: Only checkbox */}
-                    <div className="flex items-center gap-2 sm:hidden">
-                        <input type="checkbox" className="w-5 h-5 accent-green-500 rounded-none" />
-                    </div>
-
-                    {/* Desktop: Full header */}
-                    <div className="hidden sm:flex items-center gap-4">
-                        <input
-                            type="checkbox"
-                            checked={selectedIds.length === filteredCandidates.length}
-                            onChange={() => {
-                                if (selectedIds.length === filteredCandidates.length) {
-                                    setSelectedIds([]);
-                                } else {
-                                    setSelectedIds(filteredCandidates.map((c) => c.id));
-                                }
-                            }}
-                            className="w-5 h-5 accent-green-500 rounded-none"
-                        />
-
-
-                        <span>Candidate Information</span>
-                    </div>
-
-                    {/* Job Status Header */}
-                    <div className="hidden sm:flex text-left sm:mr-[220px]">Job Status</div>
-                </div>
-
-                {/* Candidate Items */}
-
-                {filteredCandidates.length > 0 ? (
-                    filteredCandidates.map((candidate) => (
-                        <div
-                            key={candidate.id}
-                            onClick={() => navigate(`/dashboard/candidates/profile/${candidate.id}`)}
-                            className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border-b-2 last:border-0 gap-4 sm:gap-6 hover:bg-gray-50 transition-colors cursor-pointer"
-                        >
-                            {/* Left */}
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1 min-w-0">
-                                <div className="flex items-center gap-4">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedIds.includes(candidate.id)}
-                                        onClick={(e) => e.stopPropagation()}
-                                        onChange={() => toggleCandidateSelection(candidate.id)}
-                                        className="w-5 h-5 accent-green-500 rounded-none"
-                                    />
-
-                                    {candidate.img ? (
-                                        <img
-                                            src={candidate.img}
-                                            alt={candidate.name}
-                                            className="w-12 h-12 rounded-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                                            <GoPerson className="w-6 h-6 text-gray-500" />
-                                        </div>
-                                    )}
-
-                                </div>
-                                <div className="min-w-0">
-                                    <div className="font-semibold text-md text-gray-800 truncate">{candidate.name}</div>
-                                    <div className="text-sm text-gray-500 truncate">{candidate.location}</div>
-                                    <div className="text-xs mt-1 text-gray-400 truncate">{candidate.tag}</div>
-                                </div>
-                            </div>
-
-                            {/* Right - Job Status */}
-                            <div className="text-sm text-gray-600 space-y-1 sm:w-[300px] flex-shrink-0">
-                                <div className="text-sm text-gray-800 truncate">{candidate.jobTitle}</div>
-                                <div className="text-sm text-gray-800 truncate">{candidate.location}</div>
-                                <div className="text-sm text-gray-800 truncate">
-                                    At <span className="text-sm text-black font-semibold">{candidate.stage}</span> Stage
-                                </div>
-                                <div className="text-sm text-gray-800 truncate">
-                                    Via <span className="text-sm text-black font-semibold">{candidate.source}</span>, {candidate.time}
-                                </div>
-                            </div>
-                        </div>
-                    ))
-                ) : (
-                    <div className="p-8 text-center text-gray-500">
-                        No candidates found matching your search criteria.
-                    </div>
-                )}
-                {selectedIds.length > 0 && <BottomCommandBar
-                    selectedCandidateIds={selectedIds}
-                    onCommandClick={(action, ids) => {
-                        console.log(`Action: ${action}, Candidates:`, ids);
-                        // handle logic based on action and selected IDs
-                    }}
-                />}
-
-            </div>
-
-
-        </div>
+  const toggleCandidateSelection = (id) => {
+    setSelectedIds((prevSelected) =>
+      prevSelected.includes(id)
+        ? prevSelected.filter((selectedId) => selectedId !== id)
+        : [...prevSelected, id]
     );
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    // Filtering handled by useEffect
+  };
+
+  const handleFilterChange = (filterName, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterName.toLowerCase()]: value
+    }));
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.length === paginatedCandidates.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedCandidates.map(c => c.id));
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setCurrentPage(newPage);
+    setSelectedIds([]); // Clear selection on page change
+  };
+
+  const handlePageSizeChange = (e) => {
+    setPageSize(Number(e.target.value));
+    setCurrentPage(1); // Reset to first page
+  };
+
+  return (
+    <div className="bg-[#f5f5f5] min-h-screen p-6 space-y-6">
+      {/* Search Box */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-6">
+        <h2 className="text-lg font-semibold text-gray-800">Candidate Search</h2>
+
+        <form onSubmit={handleSearch} className="flex items-center gap-4">
+          <div className="flex items-center border rounded-md px-3 py-2 w-full max-w-xl">
+            <Search className="text-gray-400 w-4 h-4 mr-2" />
+            <input
+              type="text"
+              placeholder="Search all candidate using keyword"
+              className="w-full outline-none text-sm text-gray-600"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button
+            type="submit"
+            className="bg-teal-700 hover:bg-teal-600 text-white px-8 py-[10px] rounded-3xl font-medium text-sm"
+          >
+            Search
+          </button>
+        </form>
+
+        <hr />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {['Department', 'Job', 'Stage', 'Tag'].map((label) => (
+            <div key={label} className="relative">
+              <label className="absolute -top-2 left-3 px-1 text-sm bg-white text-gray-500 z-10">
+                {label}
+              </label>
+              <select
+                className="w-full px-3 py-3 text-sm border border-gray-300 rounded-lg appearance-none text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={(e) => handleFilterChange(label, e.target.value)}
+                onFocus={() => setOpenDropdown(label)}
+                onBlur={() => setOpenDropdown(null)}
+                value={filters[label.toLowerCase()] || ''}
+              >
+
+                <option value="">All {label}s</option>
+                {label === 'Department' && (
+                  <>
+                    <option>HR</option>
+                    <option>Engineering</option>
+                    <option>Design</option>
+                  </>
+                )}
+                {label === 'Job' && (
+                  <>
+                    <option>HR Executive</option>
+                    <option>Software Engineer</option>
+                    <option>UI/UX Designer</option>
+                  </>
+                )}
+                {label === 'Stage' && (
+                  <>
+                    <option>Screening</option>
+                    <option>Interview</option>
+                    <option>Offer</option>
+                  </>
+                )}
+                {label === 'Tag' && (
+                  <>
+                    <option>#candidate</option>
+                    <option>#developer</option>
+                    <option>#designer</option>
+                  </>
+                )}
+              </select>
+              <ChevronDown
+                className={`pointer-events-none absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 transition-transform duration-200 ${openDropdown === label ? 'rotate-180' : ''
+                  }`}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-6">
+        <div className="flex justify-between items-center mb-4 sm:mb-6">
+          <div className="text-lg text-gray-800 font-medium">
+            {totalCandidates} Candidate{totalCandidates !== 1 ? 's' : ''} Found
+          </div>
+
+          <div className="flex items-center gap-4">
+            <label className="text-sm text-gray-700">Per page:</label>
+            <select
+              value={pageSize}
+              onChange={handlePageSizeChange}
+              className="border border-gray-300 rounded-md px-2 py-1 text-sm"
+            >
+              {[5, 10, 20, 50].map(size => (
+                <option className="text-sm" key={size} value={size}>{size}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Table Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b rounded-[4px] p-4 bg-red-50 mb-4 text-sm text-black gap-2 sm:gap-0">
+          {/* Mobile: Only checkbox */}
+          <div className="flex items-center gap-2 sm:hidden">
+            <input type="checkbox" className="w-5 h-5 accent-green-500 rounded-none" />
+          </div>
+
+          {/* Desktop: Full header */}
+          <div className="hidden sm:flex items-center gap-4">
+            <input
+              type="checkbox"
+              checked={selectedIds.length === paginatedCandidates.length && paginatedCandidates.length > 0}
+              onChange={handleSelectAll}
+              className="w-5 h-5 accent-green-500 rounded-none"
+            />
+            <span>Candidate Information</span>
+          </div>
+
+          {/* Job Status Header */}
+          <div className="hidden sm:flex text-left sm:mr-[220px]">Job Status</div>
+        </div>
+
+        {/* Candidate Items */}
+        {paginatedCandidates.length > 0 ? (
+          paginatedCandidates.map((candidate) => (
+            <CandidateCard
+              key={candidate.id}
+              candidate={candidate}
+              isLoading={isLoading}
+              isSelected={selectedIds.includes(candidate.id)}
+              onSelect={() => toggleCandidateSelection(candidate.id)}
+            />
+          ))
+        ) : (
+          <div className="p-8 text-center text-gray-500">
+            No candidates found matching your search criteria.
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-3 mt-6 text-gray-700">
+            <button
+              className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Prev
+            </button>
+
+            {[...Array(totalPages)].map((_, idx) => {
+              const pageNum = idx + 1;
+              return (
+                <button
+                  key={pageNum}
+                  className={`px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 ${pageNum === currentPage ? 'bg-teal-700 text-white hover:bg-teal-600' : ''}`}
+                  onClick={() => handlePageChange(pageNum)}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+
+            <button
+              className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        )}
+
+        {selectedIds.length > 0 && (
+          <BottomCommandBar
+            selectedCandidateIds={selectedIds}
+            onCommandClick={(action, ids) => {
+              console.log(`Action: ${action}, Candidates:`, ids);
+              // handle logic based on action and selected IDs
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default Candidates;

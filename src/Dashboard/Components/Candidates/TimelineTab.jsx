@@ -22,7 +22,7 @@ const TimelineTab = ({ applicationId }) => {
     const fetchLogs = async () => {
       try {
         const response = await axios.get(
-          `http://127.0.0.1:8000/api/v.1/job-applications/${applicationId}/logs`,
+          `http://localhost:8000/api/v.1/job-applications/${applicationId}/logs`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,

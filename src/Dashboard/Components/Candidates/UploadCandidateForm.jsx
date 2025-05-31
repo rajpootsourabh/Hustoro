@@ -6,6 +6,8 @@ import UploadBox from "../../Components/UploadBox";
 import { validateCandidateForm } from "../../../utils/validators/candidateFormValidator";
 import { useSnackbar } from "../../Components/SnackbarContext";
 import { toTitleCase } from "../../../utils/caseConverter";
+import countryList from "../../../utils/countryList";
+import CustomSelect from "../CustomSelect";
 
 const initialFormState = {
     firstName: "",
@@ -21,6 +23,9 @@ const initialFormState = {
     skills: "",
     profilePic: null,
     resume: null,
+    country: "",
+    education: "",
+    email: "",
 };
 
 export default function UploadCandidateForm({ onClose, onSubmit, selectedJob, sourceId = 1 }) {
@@ -64,6 +69,9 @@ export default function UploadCandidateForm({ onClose, onSubmit, selectedJob, so
         data.append("expected_ctc", parseInt(formData.expectedCtc) || 0);
         data.append("job_id", selectedJob?.id);
         data.append("source_id", sourceId);
+        data.append("email", formData.email);
+        data.append("country", formData.country);
+        data.append("education", formData.education || "");
 
         if (formData.profilePic) data.append("profile_pic", formData.profilePic);
         if (formData.resume) data.append("resume", formData.resume);
@@ -145,13 +153,6 @@ export default function UploadCandidateForm({ onClose, onSubmit, selectedJob, so
                                 onChange={handleChange("lastName")}
                                 error={errors?.lastName}
                             />
-                            <FormInput
-                                label="Current Designation"
-                                required
-                                value={formData.designation}
-                                onChange={handleChange("designation")}
-                                error={errors?.designation}
-                            />
                             <FormSelect
                                 label="Location"
                                 required
@@ -159,6 +160,29 @@ export default function UploadCandidateForm({ onClose, onSubmit, selectedJob, so
                                 onChange={handleChange("location")}
                                 options={["Delhi", "Bangalore", "Remote"]}
                                 error={errors?.location}
+                            />
+                            <CustomSelect
+                                label="Country"
+                                optionsList={countryList}
+                                required
+                                onChange={handleChange("country")}
+                                error={errors?.country}
+                                showSearch
+                            />
+
+                            <FormInput
+                                label="Current Designation"
+                                required
+                                value={formData.designation}
+                                onChange={handleChange("designation")}
+                                error={errors?.designation}
+                            />
+                            <FormInput
+                                label="Education"
+                                value={formData.education}
+                                required
+                                onChange={handleChange("education")}
+                                error={errors?.education}
                             />
                             <FormSelect
                                 label="Work Experience"
@@ -176,6 +200,16 @@ export default function UploadCandidateForm({ onClose, onSubmit, selectedJob, so
                                 onChange={handleChange("phone")}
                                 error={errors?.phone}
                             />
+                            <FormInput
+                                label="Email"
+                                type="email"
+                                required
+                                value={formData.email}
+                                onChange={handleChange("email")}
+                                error={errors?.email}
+                            />
+
+
                             <FormInput
                                 label="Current CTC"
                                 type="number"

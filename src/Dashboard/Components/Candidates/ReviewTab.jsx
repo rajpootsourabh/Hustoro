@@ -14,7 +14,7 @@ const ReviewTab = ({ applicationId }) => {
     const fetchReviews = async () => {
       try {
         const response = await axios.get(
-          `http://127.0.0.1:8000/api/v.1/job-applications/${applicationId}/reviews`,
+          `http://localhost:8000/api/v.1/job-applications/${applicationId}/reviews`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -43,7 +43,7 @@ const ReviewTab = ({ applicationId }) => {
             className="bg-white border border-red-200 rounded-2xl px-4 py-4 shadow-sm text-center"
           >
             <ProfileImage
-              src={`http://127.0.0.1:8000/storage/${review.reviewer_profile_pic}`}
+              src={`http://localhost:8000/storage/${review.reviewer_profile_pic}`}
               alt={review.reviewed_by_name || review.reviewer_name || "Reviewer"}
               height={14}
               width={14}

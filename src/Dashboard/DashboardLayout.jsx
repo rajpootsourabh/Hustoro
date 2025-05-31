@@ -26,7 +26,7 @@ const DashboardLayout = () => {
   // make an api call to verify the token and if failed then redirect to signin page
   const cache_cleaner = async()=>{
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/v.1/cacheclear",{
+      const response = await axios.get("http://localhost:8000/api/v.1/cacheclear",{
         headers:{
           "Content-Type":"application/json",
           "Authorization":"Bearer "+localStorage.getItem("access_token"),
@@ -42,6 +42,28 @@ const DashboardLayout = () => {
     }
   }
   
+   // Define paths where navbar should be hidden (including dynamic)
+  const noNavbarPatterns = [
+    "/dashboard/employee/new",
+    "/dashboard/employee/:employeeId/edit",
+    "/dashboard/jobs/overview/:id"
+  ];
+
+  const patternToRegex = (pattern) => {
+    return new RegExp(
+      "^" +
+        pattern
+          .replace(/\//g, "\\/")
+          .replace(/:\w+/g, "[^\\/]+") +
+        "$"
+    );
+  };
+
+  const hideNavbar = noNavbarPatterns.some((pattern) => {
+    const regex = patternToRegex(pattern);
+    return regex.test(location.pathname);
+  });
+  
   return (
     <>
     {
@@ -50,7 +72,9 @@ const DashboardLayout = () => {
         <Loader />
       :
       <div className=" flex flex-col justify-center items-center relative">
-        <DashboardNavbar username={username} />
+        {!hideNavbar && (
+          <DashboardNavbar username={username} />
+        )}
         <main className="w-full max-w-[1700px] bg-[#F3F3F3]">
           <Outlet username={username} /> {/* This will render the child route (page) */}
         </main>

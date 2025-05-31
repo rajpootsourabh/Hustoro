@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import EditableField from "../Candidates/EditableField";
 import ResumeViewer from "./ResumeViewer";
 
-const ProfileTab = ({ candidateData }) => {
+const ProfileTab = ({ candidateData, isEditMode }) => {
   const [data, setData] = useState(null);
   const [editingField, setEditingField] = useState(null);
   const [tempValue, setTempValue] = useState("");
@@ -51,7 +51,7 @@ const ProfileTab = ({ candidateData }) => {
       onSave={saveChange}
       onCancel={cancelChange}
       required={required}
-      allowEdit={true}
+      allowEdit={isEditMode}  // <-- Pass isEditMode here
     />
   );
 
@@ -75,7 +75,6 @@ const ProfileTab = ({ candidateData }) => {
       {renderEditableField("Email", "email")}
 
       {candidateData?.candidate?.resume && (
-        // <ResumeViewer fileUrl={candidateData.candidate.resume} />
         <ResumeViewer fileUrl={"https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf"} />
       )}
     </div>

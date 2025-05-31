@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Search, MoreVertical, Mail, Phone, ChevronDown } from "lucide-react";
+import { Search, ChevronDown } from "lucide-react";
 import Loader from "../../Components/Loader";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaUserCircle } from "react-icons/fa";
-import { GoPerson } from "react-icons/go";
+import EmployeeCard from "../../Components/Employee/EmployeeCard";
 
 export default function Employee() {
     const [isFocused, setIsFocused] = useState(false);
@@ -12,20 +11,22 @@ export default function Employee() {
     const [loading, setLoading] = useState(true);
     const [employees, setEmployees] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [openDropdownId, setOpenDropdownId] = useState(null); // Track which dropdown is open
+    const [openDropdownId, setOpenDropdownId] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(6); // 👈 NEW
+
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
 
     useEffect(() => {
         setLoading(true);
-        axios.get("http://127.0.0.1:8000/api/v.1/employee/all", {
+        axios.get("http://localhost:8000/api/v.1/employee/all", {
             headers: {
                 "Authorization": "Bearer " + localStorage.getItem("access_token"),
             },
         })
             .then((res) => {
                 setEmployees(res.data.data);
-                console.log(res.data.data)
             })
             .catch((err) => {
                 console.error("Error fetching employee data:", err);
@@ -39,7 +40,7 @@ export default function Employee() {
         function handleClickOutside(event) {
             const isInsideDropdown = event.target.closest(".dropdown-menu");
             if (!isInsideDropdown) {
-                setOpenDropdownId(null); // Close only if clicked outside all dropdowns
+                setOpenDropdownId(null);
             }
         }
 
@@ -49,8 +50,6 @@ export default function Employee() {
         };
     }, []);
 
-
-
     const tabs = ["People Directory", "ORG Chart", "Onboarding", "Performance"];
 
     const filteredEmployees = employees.filter((emp) => {
@@ -58,8 +57,14 @@ export default function Employee() {
         return fullName.includes(searchTerm.toLowerCase());
     });
 
+    const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+    const paginatedEmployees = filteredEmployees.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
     const handleDropdownSelect = (option) => {
-        setOpenDropdownId(null); // Close dropdown when an option is selected
+        setOpenDropdownId(null);
         if (option === "Add manually") {
             navigate("/dashboard/employee/new");
         } else if (option === "Import from CSV") {
@@ -67,8 +72,13 @@ export default function Employee() {
         }
     };
 
-    const handleMoreVerticalClick = (employee) => {
-        setOpenDropdownId(prevId => prevId === employee.id ? null : employee.id); // Toggle dropdown
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
+
+    const handleItemsPerPageChange = (e) => {
+        setItemsPerPage(Number(e.target.value));
+        setCurrentPage(1); // Reset to first page
     };
 
     if (loading) return <Loader message="Fetching employee data..." />;
@@ -137,7 +147,10 @@ export default function Employee() {
                             <input
                                 type="text"
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setCurrentPage(1);
+                                }}
                                 onFocus={() => setIsFocused(true)}
                                 onBlur={() => setIsFocused(false)}
                                 className="flex-grow bg-transparent px-4 py-[10px] text-gray-800 focus:outline-none"
@@ -150,87 +163,75 @@ export default function Employee() {
                     </div>
                 </div>
 
-                {/* Employee List */}
-                {filteredEmployees.length > 0 ? (
-                    filteredEmployees.map((employee) => (
-                        <div
-                            key={employee.id}
-                            className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:shadow-sm"
+                {/* Per Page Selector */}
+                <div className="flex justify-end">
+                    <div className="flex items-center gap-4">
+                        <label className="text-sm text-gray-700">Per page:</label>
+                        <select
+                            value={itemsPerPage}
+                            onChange={handleItemsPerPageChange}
+                            className="border border-gray-300 rounded-md px-2 py-1 text-sm"
                         >
-                            {/* Left: Image + Name */}
-                            <div className="flex items-center space-x-4 w-full md:flex-[2] min-w-0">
-                                {employee.profile_image ? (
-                                    <img
-                                        src={employee.profile_image}
-                                        alt={employee.preferred_name || `${employee.first_name} ${employee.last_name}`}
-                                        className="w-14 h-14 rounded-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-14 h-14 rounded-full flex items-center justify-center bg-gray-200">
-                                        <GoPerson className="text-gray-400 w-9 h-9" />
-                                    </div>
-                                )}
-                                <div>
-                                    <div className="font-semibold text-sm">
-                                        {employee.first_name && employee.last_name && `${employee.first_name} ${employee.last_name}`}
-                                    </div>
-                                    <div className="text-xs text-gray-500">
-                                        {employee.job_detail?.job_title || "N/A"}
-                                    </div>
-                                </div>
-                            </div>
+                            {[6, 12, 24].map(size => (
+                                <option className="text-sm" key={size} value={size}>
+                                    {size}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
 
-                            {/* Middle: Contact Info */}
-                            <div className="text-gray-500 space-y-1 text-left w-full md:flex-[2] min-w-0">
-                                <div className="flex items-center space-x-2">
-                                    <Mail className="w-4 h-4" />
-                                    <span className="text-xs break-all">{employee.work_email || "N/A"}</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Phone className="w-4 h-4" />
-                                    <span className="text-xs">{employee.phone || "N/A"}</span>
-                                </div>
-                            </div>
-
-                            {/* Right: Reporting Line */}
-                            <div className="text-xs text-gray-500 whitespace-nowrap w-full md:flex-[1] min-w-0">
-                                Report to {employee.job_detail?.manager || "N/A"}
-                            </div>
-
-                            {/* Menu */}
-                            <div className="relative self-end md:self-auto">
-                                <MoreVertical
-                                    className="text-gray-500 cursor-pointer"
-                                    onClick={() => handleMoreVerticalClick(employee)}
-                                />
-                                {openDropdownId === employee.id && (
-                                    <div className="dropdown-menu absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-md z-10">
-                                        <button className="w-full text-left px-4 py-2 hover:bg-teal-50 text-sm rounded-b-lg">
-                                            Publish Profile
-                                        </button>
-                                        <button
-                                            onClick={() => navigate(`/dashboard/employee/${employee.id}/edit`, { state: { employee } })}
-                                            className="w-full text-left px-4 py-2 hover:bg-teal-50 text-sm rounded-t-lg"
-                                        >
-                                            Edit Profile
-                                        </button>
-                                        <button className="w-full text-left px-4 py-2 hover:bg-teal-50 text-sm rounded-b-lg">
-                                            View Profile
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
+                {/* Employee List */}
+                {paginatedEmployees.length > 0 ? (
+                    paginatedEmployees.map((employee) => (
+                        <EmployeeCard
+                            key={employee.id}
+                            employee={employee}
+                            openDropdownId={openDropdownId}
+                            handleMoreVerticalClick={() =>
+                                setOpenDropdownId(prev => prev === employee.id ? null : employee.id)
+                            }
+                            navigate={navigate}
+                        />
                     ))
                 ) : (
                     <div className="flex justify-center items-center h-64 text-gray-500 text-lg font-medium">
                         No employee data available.
                     </div>
                 )}
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-2 mt-6 flex-wrap">
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+                        >
+                            Previous
+                        </button>
+                        {Array.from({ length: totalPages }, (_, index) => (
+                            <button
+                                key={index + 1}
+                                onClick={() => handlePageChange(index + 1)}
+                                className={`px-3 py-1 text-sm border rounded ${currentPage === index + 1
+                                    ? "bg-teal-600 text-white"
+                                    : "hover:bg-teal-50"
+                                    }`}
+                            >
+                                {index + 1}
+                            </button>
+                        ))}
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
-
 }
-

@@ -1,4 +1,5 @@
 // utils/timeAgo.js
+import { format } from 'date-fns';
 
 export function getTimeAgo(dateString) {
     const now = new Date();
@@ -16,3 +17,8 @@ export function getTimeAgo(dateString) {
     return `${days} days ago`;
   }
   
+
+export function formatDate(dateString) {
+      const date = new Date(dateString);
+      return format(date, 'MMMM dd, yyyy'); // May 22, 2025
+  }
