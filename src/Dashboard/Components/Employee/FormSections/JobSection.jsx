@@ -1,17 +1,48 @@
-import { forwardRef } from "react";
-import FormInput from "./FormInput";
-import FormDateInput from "./FormDateInput";
-import MultiLevelSelect from "../../../Dashboard/Components/MultiLevelSelect";
-import CustomSelect from "../CustomSelect";
-import { entityOptionsData, departmentOptionsData } from "../../../utils/selectOptionsData";
+import { forwardRef, useEffect, useState } from "react";
+import FormInput from "../FormInput";
+import FormDateInput from "../FormDateInput";
+import MultiLevelSelect from "../../MultiLevelSelect";
+import CustomSelect from "../../CustomSelect";
+import { entityOptionsData, departmentOptionsData } from "../../../../utils/selectOptionsData";
 
-const JobSection = forwardRef(({ data, onChange, errors}, ref) => {
+const JobSection = forwardRef(({ data, onChange, errors }, ref) => {
+    const [employeeOptions, setEmployeeOptions] = useState([]);
     const handleChange = (field, value) => {
         onChange({ [field]: value });
     };
 
+    useEffect(() => {
+        const fetchEmployeeNames = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/employee/names`, {
+                    headers: {
+                        "Authorization": "Bearer " + localStorage.getItem("access_token"),
+                    },
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    const employees = result?.data || [];
+
+                    // Map to "FirstName LastName" array:
+                    const options = employees.map((emp) => `${emp.first_name} ${emp.last_name}`);
+
+                    setEmployeeOptions(options);
+                } else {
+                    console.log("Failed to fetch employee names");
+                }
+            } catch (error) {
+                console.error("Error fetching employee names:", error);
+                console.log("An error occurred while fetching employee names");
+            }
+        };
+
+        fetchEmployeeNames();
+    }, []);
+
+
     return (
-        <section id="Job" ref={ref} className="mt-12">
+        <section id="Job" ref={ref} className="scroll-mt-32">
             <h2 className="text-xl mb-2">Job</h2>
             <p className="text-gray-500 text-sm mb-6">0/3 mandatory fields</p>
 
@@ -55,19 +86,29 @@ const JobSection = forwardRef(({ data, onChange, errors}, ref) => {
                         value={data.department || ""}
                         onChange={(val) => handleChange("department", val)}
                     />
-                    <MultiLevelSelect
+                    {/* <MultiLevelSelect
                         label="Division"
                         error={""}
                         value={data.division || ""}
                         onChange={(val) => handleChange("division", val)}
+                    /> */}
+
+                    <CustomSelect
+                        label="Manager"
+                        optionsList={employeeOptions}
+                        required
+                        value={data.manager || ""}
+                        onChange={(val) => handleChange("manager", val)}
+                        error={errors.manager}
                     />
-                    <FormInput
+
+                    {/* <FormInput
                         label="Manager"
                         value={data.manager || ""}
                         onChange={(val) => handleChange("manager", val)}
                         required
                         error={errors.manager}
-                    />
+                    /> */}
                 </div>
             </div>
 

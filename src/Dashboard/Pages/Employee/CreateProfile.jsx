@@ -1,165 +1,369 @@
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import MultiLevelSelect from "../../Components/MultiLevelSelect";
-import CustomSelect from "../../Components/CustomSelect";
-import { entityOptionsData } from "../../../utils/selectOptionsData";
-import FormInput from "../../Components/Employee/FormInput";
-import FormDateInput from "../../Components/Employee/FormDateInput";
-import { useSnackbar } from "../../../Dashboard/Components/SnackbarContext"; 
+import { useState, useEffect, useRef } from "react";
+import { useSnackbar } from "../../Components/SnackbarContext"; // import useSnackbar hook
+import Header from "../../Components/Employee/Header";
+import Sidebar from "../../Components/Employee/Sidebar";
+import MobileSidebar from "../../Components/Employee/MobileSidebar";
+import ProgressCard from "../../Components/Employee/ProgressCard";
+import PersonalSection from "../../Components/Employee/FormSections/PersonalSection";
+import JobSection from "../../Components/Employee/FormSections/JobSection";
+import CompensationBenefitsSection from "../../Components/Employee/FormSections/CompensationBenefitsSection";
+import LegalDocumentsSection from "../../Components/Employee/FormSections/LegalDocumentsSection";
+import ExperienceSection from "../../Components/Employee/FormSections/ExperienceSection";
+import EmergencySection from "../../Components/Employee/FormSections/EmergencySection";
+import Loader from "../../Components/Loader";
+import { useNavigate, useParams } from "react-router-dom";
+import { validateCompensationBenefits, validateEmergencyContact, validateExperience, validateJobInfo, validateLegalDocuments, validatePersonalInfo, appendFormData } from "../../../utils/validators/employeeFormValidator";
+import { convertKeysToCamel } from "../../../utils/caseConverter";
+import CredentialsSection from "../../Components/Employee/FormSections/CredentialsSection";
 
-export default function CreateProfile() {
-  const navigate = useNavigate();
-  const { showSnackbar } = useSnackbar();
 
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    jobTitle: "",
-    startDate: "",
-    personalEmail: "",
-    entity: "",
-    profileTemplate: "",
-  });
 
-  const [errors, setErrors] = useState({});
-
-  const handleChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, [field]: "" })); // Clear error when user starts typing
-  };
-
-  const handleCancel = () => {
-    navigate("/dashboard/employee", { state: { form } });
-  };
-
-  const handleNext = () => {
-    // Validation for required fields
-    let validationErrors = {};
-
-    // Check for required fields
-    const requiredFields = [
-      "firstName",
-      "lastName",
-      "jobTitle",
-      "profileTemplate"
-    ];
-
-    requiredFields.forEach((field) => {
-      if (!form[field]) {
-        validationErrors[field] = `${field.replace(/([A-Z])/g, " $1")} is required`;
-      }
+const CreateProfile = () => {
+    const navigate = useNavigate();
+    const { employeeId } = useParams();
+    const isEditMode = Boolean(employeeId);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSavingDraft, setIsSavingDraft] = useState(false);
+    const { showSnackbar } = useSnackbar(); // Get the showSnackbar function from the context
+    const [activeSection, setActiveSection] = useState("Personal");
+    const [profileImage, setProfileImage] = useState(null);
+    
+    const [errors, setErrors] = useState({
+        personal: {},
+        job: {},
+        compensationBenefits: {},
+        legalDocuments: {},
+        experience: {},
+        emergency: {},
+        credentials: {}
     });
 
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors); // Set the errors if any
-      showSnackbar("Please fill in all required fields", "error");
-    } else {
-      navigate("/dashboard/employee/edit", { state: { form } });
-    }
-  };
 
-  return (
-    <div className="min-h-screen bg-gray-100 px-4 py-8 sm:px-6 lg:px-8">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between items-start sm:items-center mb-8 max-w-5xl mx-auto">
-        <h1 className="text-lg sm:text-2xl text-gray-900">Create New Profile</h1>
-        <div className="flex flex-wrap gap-3">
-          <button onClick={handleCancel} className="text-sm text-gray-500 hover:underline">Cancel</button>
-          <button className="text-sm px-4 py-2 border-2 rounded-md text-gray-500 border-teal-700 hover:bg-gray-100">
-            Save as Draft
-          </button>
-          <button
-            onClick={handleNext}
-            className="text-sm px-4 py-2 border-2 rounded-md border-teal-700 bg-teal-700 text-white hover:bg-teal-800"
-          >
-            Next: Fill Employee Info
-          </button>
+    const validateForm = () => {
+        const personalErrors = validatePersonalInfo(formData.personal);
+        const jobErrors = validateJobInfo(formData.job);
+        const compensationErrors = validateCompensationBenefits(formData.compensationBenefits);
+        const legalErrors = validateLegalDocuments(formData.legalDocuments);
+        const experienceErrors = validateExperience(formData.experience);
+        const emergencyErrors = validateEmergencyContact(formData.emergency);
+        const credentialErrors = {}
+
+        setErrors({
+            personal: personalErrors,
+            job: jobErrors,
+            compensationBenefits: compensationErrors,
+            legalDocuments: legalErrors,
+            experience: experienceErrors,
+            emergency: emergencyErrors,
+            credentials: credentialErrors
+        });
+
+        // Check if there are any errors
+        return Object.values({
+            personalErrors,
+            jobErrors,
+            compensationErrors,
+            legalErrors,
+            experienceErrors,
+            emergencyErrors,
+            credentialErrors
+        }).some((error) => Object.keys(error).length > 0);
+    };
+
+
+    useEffect(() => {
+        const fetchEmployeeData = async () => {
+            if (!employeeId) return;
+
+            setIsLoading(true);
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/employee/${employeeId}/details`, {
+                    headers: {
+                        "Authorization": "Bearer " + localStorage.getItem("access_token"),
+                    },
+                });
+
+                if (response.ok) {
+                    const employeeData = await response.json();
+                    const preFilledData = convertKeysToCamel(employeeData?.data || {});
+
+                    setFormData((prev) => ({
+                        personal: {
+                            ...prev.personal,
+                            ...preFilledData,
+                        },
+                        job: {
+                            ...prev.job,
+                            ...(preFilledData.jobDetail || {}),
+                        },
+                        compensationBenefits: {
+                            ...prev.compensationBenefits,
+                            ...(preFilledData.compensationDetail || {}),
+                        },
+                        legalDocuments: {
+                            ...prev.legalDocuments,
+                            ...(preFilledData.legalDocument || {}),
+                        },
+                        experience: {
+                            ...prev.experience,
+                            ...(preFilledData.experienceDetail || {}),
+                        },
+                        emergency: {
+                            ...prev.emergency,
+                            ...(preFilledData.emergencyContact || {}),
+                        },
+                         credentials: {
+                            ...prev.credentials,
+                            ...(preFilledData.credentials || {}),
+                        },
+                    }));
+                } else {
+                    showSnackbar("Failed to fetch employee details", "error");
+                }
+            } catch (error) {
+                console.error("Error fetching employee details:", error);
+                showSnackbar("An error occurred while fetching employee data.", "error");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchEmployeeData();
+    }, [employeeId]);
+
+
+    const [formData, setFormData] = useState({
+        personal: {},
+        job: {},
+        compensationBenefits: {},
+        legalDocuments: {},
+        experience: {},
+        emergency: {},
+        credentials: { password: '' }
+    });
+    const [isFormDirty, setIsFormDirty] = useState(false);
+
+    const sectionRefs = {
+        Personal: useRef(null),
+        Job: useRef(null),
+        CompensationBenefits: useRef(null),
+        LegalDocuments: useRef(null),
+        Experience: useRef(null),
+        Emergency: useRef(null),
+        Credentials: useRef(null)
+    };
+
+    const handleFormDataChange = (section, updatedData) => {
+        setFormData((prev) => {
+            const newFormData = {
+                ...prev,
+                [section]: {
+                    ...prev[section],
+                    ...updatedData,
+                },
+            };
+            setIsFormDirty(true);
+            return newFormData;
+        });
+    };
+
+    const handleSectionClick = (section) => {
+        setActiveSection(section);
+        const sectionElement = sectionRefs[section]?.current;
+        if (sectionElement) {
+            window.scrollTo({
+                top: sectionElement.offsetTop - 20,
+                behavior: "smooth",
+            });
+        }
+    };
+
+    const handleImageUpload = (file) => {
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProfileImage(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+
+    useEffect(() => {
+        const observerOptions = {
+            root: null,
+            rootMargin: "0px 0px -70% 0px",
+            threshold: 0,
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    const sectionId = entry.target.getAttribute("id");
+                    if (sectionId) {
+                        setActiveSection(sectionId);
+                    }
+                }
+            });
+        }, observerOptions);
+
+        Object.values(sectionRefs).forEach((ref) => {
+            if (ref.current) {
+                observer.observe(ref.current);
+            }
+        });
+
+        return () => {
+            observer.disconnect();
+        };
+    }, []);
+
+
+    // Handle Form Submit (Publish)
+    const handleSubmit = async () => {
+        if (!isFormDirty) {
+            showSnackbar("No changes to submit!", "warning");
+            return;
+        }
+
+        const hasErrors = await validateForm();
+        if (hasErrors) {
+            showSnackbar("Please fill all required fields before submitting.", "error");
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const formPayload = new FormData();
+            appendFormData(formPayload, formData);
+
+            // 👇 Laravel-compatible spoofing
+            if (isEditMode) {
+                formPayload.append('_method', 'PUT');
+            }
+
+            const url = isEditMode
+                ? `${import.meta.env.VITE_API_BASE_URL}/employee/${employeeId}`
+                : `${import.meta.env.VITE_API_BASE_URL}/employee`;
+
+            const response = await fetch(url, {
+                method: 'POST', // Always use POST when sending FormData
+                body: formPayload,
+                headers: {
+                    "Authorization": "Bearer " + localStorage.getItem("access_token"),
+                    // DO NOT manually set 'Content-Type' when sending FormData; browser will set the correct boundary
+                },
+            });
+
+            if (response.ok) {
+                showSnackbar(isEditMode ? "Employee updated successfully!" : "Employee added successfully!", "success");
+                setIsFormDirty(false);
+                // Navigate to employee list after success
+                navigate("/dashboard/employees");
+            } else {
+                const errorData = await response.json();
+                const errorMessages = errorData?.message;
+                if (errorMessages) {
+                    const errorList = Object.values(errorMessages).flat();
+                    const errorMessage = errorList.join(' ');
+                    showSnackbar(errorMessage, "error");
+                } else {
+                    showSnackbar("Failed to submit employee data!", "error");
+                }
+            }
+        } catch (error) {
+            console.error("Error submitting employee:", error);
+            showSnackbar("An error occurred while submitting employee.", "error");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+
+
+    return (
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+            {isLoading && <Loader />} {/* Show loader while loading */}
+            <Header
+                title={isEditMode ? "Edit Employee" : "Add New Employee"}
+                // onSaveDraft={handleSaveDraft}  // Pass Save Draft function
+                onSubmit={handleSubmit}         // Pass Submit function
+                isFormDirty={isFormDirty}       // Pass form dirty state
+            />
+
+            <div className="flex flex-1 overflow-hidden relative">
+                <Sidebar
+                    sections={Object.keys(sectionRefs).filter(
+                        (key) => isEditMode || key !== "Credentials"
+                    )}
+                    activeSection={activeSection}
+                    handleSectionClick={handleSectionClick}
+                />
+
+                <main className="flex-1 overflow-y-auto px-4 py-6 lg:ml-64 lg:mr-72">
+                    <div className="max-w-4xl mx-auto space-y-12">
+                        <PersonalSection
+                            ref={sectionRefs.Personal}
+                            profileImage={profileImage}
+                            handleImageUpload={handleImageUpload}
+                            data={formData.personal}
+                            onChange={(data) => handleFormDataChange("personal", data)}
+                            errors={errors.personal}
+                        />
+                        <JobSection
+                            ref={sectionRefs.Job}
+                            data={formData.job}
+                            onChange={(data) => handleFormDataChange("job", data)}
+                            errors={errors.job}
+                        />
+                        <CompensationBenefitsSection
+                            ref={sectionRefs.CompensationBenefits}
+                            data={formData.compensationBenefits}
+                            onChange={(data) => handleFormDataChange("compensationBenefits", data)}
+                            errors={errors.compensationBenefits}
+                        />
+                        <LegalDocumentsSection
+                            ref={sectionRefs.LegalDocuments}
+                            data={formData.legalDocuments}
+                            onChange={(data) => handleFormDataChange("legalDocuments", data)}
+                            errors={errors.legalDocuments}
+                        />
+                        <ExperienceSection
+                            ref={sectionRefs.Experience}
+                            data={formData.experience}
+                            onChange={(data) => handleFormDataChange("experience", data)}
+                            errors={errors.experience}
+                        />
+                        <EmergencySection
+                            ref={sectionRefs.Emergency}
+                            data={formData.emergency}
+                            onChange={(data) => handleFormDataChange("emergency", data)}
+                            errors={errors.emergency}
+                        />
+                        {isEditMode && (
+                            <CredentialsSection
+                                ref={sectionRefs.Credentials}
+                                data={formData.credentials}
+                                onChange={(data) => handleFormDataChange("credentials", data)}
+                                errors={errors.credentialErrors}
+                            />
+                        )}
+                    </div>
+                </main>
+
+                <div className="hidden lg:block fixed top-18 right-0 w-72 p-4 overflow-y-auto">
+                    <ProgressCard max={6} current={5} />
+                </div>
+            </div>
+
+            <MobileSidebar
+                sections={Object.keys(sectionRefs)}
+                activeSection={activeSection}
+                handleSectionClick={handleSectionClick}
+            />
         </div>
-      </div>
-
-      <div className="max-w-5xl mx-auto bg-white rounded-lg p-6 sm:p-8 shadow-md">
-        <div className="space-y-10">
-          {/* Basic Information */}
-          <div>
-            <h2 className="text-md font-medium text-gray-800 mb-6">Basic information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <FormInput
-                label="First name"
-                required
-                value={form.firstName}
-                onChange={(val) => handleChange("firstName", val)}
-                error={errors.firstName}
-              />
-              <FormInput
-                label="Last name"
-                required
-                value={form.lastName}
-                onChange={(val) => handleChange("lastName", val)}
-                error={errors.lastName}
-              />
-              <FormInput
-                label="Job title"
-                required
-                value={form.jobTitle}
-                onChange={(val) => handleChange("jobTitle", val)}
-                error={errors.jobTitle}
-              />
-
-              {/* Start Date */}
-              <FormDateInput
-                label="Start date"
-                value={form.startDate || ""}
-                onChange={(val) => handleChange("startDate", val)}
-                error={errors.startDate}
-              />
-
-              {/* Personal Email */}
-              <FormInput
-                label="Personal email"
-                type="email"
-                value={form.personalEmail}
-                onChange={(val) => handleChange("personalEmail", val)}
-                error={errors.personalEmail}
-              />
-            </div>
-          </div>
-
-          {/* Entity & Profile Template */}
-          <div>
-            <h2 className="text-md font-medium text-gray-800 mb-6">Entity & profile template</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <MultiLevelSelect
-                label="Entity"
-                error={errors.entity}
-                optionsList={entityOptionsData}
-                value={form.entity}
-                onChange={(val) => handleChange("entity", val)}
-              />
-
-              <CustomSelect
-                label="Profile Template"
-                required
-                optionsList={["Default"]}
-                value={form.profileTemplate}
-                onChange={(val) => handleChange("profileTemplate", val)}
-                error={errors.profileTemplate}
-              />
-            </div>
-
-            {/* Bottom Navigation Button */}
-            <div className="flex justify-end mt-8">
-              <button
-                onClick={handleNext}
-                className="px-4 py-2 border-2 border-teal-700 text-teal-700 rounded-md hover:bg-teal-50 flex items-center space-x-2 text-sm"
-              >
-                <span>Next: Fill employee info</span>
-                <ChevronDown className="-rotate-90 w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    );
 }
+
+export default CreateProfile

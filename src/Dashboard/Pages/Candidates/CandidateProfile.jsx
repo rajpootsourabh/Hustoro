@@ -30,7 +30,7 @@ export default function CandidateProfile() {
     const updateStage = (nextStage) => {
         setStage(nextStage); // Optimistically update UI
 
-        fetch(`http://localhost:8000/api/v.1/job-applications/${id}/set-stage`, {
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/job-applications/${id}/set-stage`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -58,7 +58,7 @@ export default function CandidateProfile() {
         const fetchCandidate = async () => {
             setIsLoading(true);
             try {
-                const response = await axios.get(`http://localhost:8000/api/v.1/job-applications/${id}`, {
+                const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/job-applications/${id}`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("access_token")}`
                     }
@@ -90,7 +90,7 @@ export default function CandidateProfile() {
 
         try {
             const response = await axios.post(
-                `http://127.0.0.1:8000/api/v.1/job-applications/${id}/reviews`,
+                `${import.meta.env.VITE_API_BASE_URL}/job-applications/${id}/reviews`,
                 payload,
                 {
                     headers: {
@@ -122,7 +122,7 @@ export default function CandidateProfile() {
 
         try {
             const response = await axios.post(
-                `http://127.0.0.1:8000/api/v.1/job-applications/communications`,
+                `${import.meta.env.VITE_API_BASE_URL}/job-applications/communications`,
                 fullPayload,
                 {
                     headers: {
@@ -145,7 +145,7 @@ export default function CandidateProfile() {
     const handleDisqualification = async (reason) => {
         try {
             const response = await axios.post(
-                `http://localhost:8000/api/v.1/job-applications/${id}/disqualify`,
+                `${import.meta.env.VITE_API_BASE_URL}/job-applications/${id}/disqualify`,
                 { note: reason },
                 {
                     headers: {

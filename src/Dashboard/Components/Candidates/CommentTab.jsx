@@ -14,7 +14,7 @@ const CommentTab = ({ applicationId }) => {
   const fetchComments = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/v.1/job-applications/${applicationId}/comments`,
+        `${import.meta.env.VITE_API_BASE_URL}/job-applications/${applicationId}/comments`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -36,7 +36,7 @@ const CommentTab = ({ applicationId }) => {
     try {
       setLoading(true);
       const res = await axios.post(
-        `http://localhost:8000/api/v.1/job-applications/${applicationId}/comments`,
+        `${import.meta.env.VITE_API_BASE_URL}/job-applications/${applicationId}/comments`,
         {
           candidateApplicationId: applicationId,
           comment: newComment,

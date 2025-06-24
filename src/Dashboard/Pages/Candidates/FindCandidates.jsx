@@ -22,7 +22,7 @@ export default function CandidateList() {
       setIsLoading(true);
 
       const response = await axios.get(
-        `http://localhost:8000/api/v.1/job-applications/job/${jobId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/job-applications/job/${jobId}`,
         {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("access_token"),

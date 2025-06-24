@@ -6,6 +6,7 @@ import axios from 'axios'
 import { useSnackbar } from '../../Components/SnackbarContext'
 import UploadCandidateForm from '../../Components/Candidates/UploadCandidateForm';
 import ConfirmModal from '../../Components/ConfirmModal'
+import AssignJobPopup from '../../Components/Job/AssignJobPopup'
 
 const Jobs = () => {
   const [loading, setLoading] = useState(false)
@@ -19,11 +20,14 @@ const Jobs = () => {
   const [confirmDeleteJob, setConfirmDeleteJob] = useState(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false);
+  const [showAssignPopup, setShowAssignPopup] = useState(false);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
+
 
 
   const getJobsStats = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/v.1/job-applications/stats", {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/job-applications/stats`, {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("access_token"),
         },
@@ -55,10 +59,9 @@ const Jobs = () => {
   };
 
 
-
   useEffect(() => {
     changeTitle("Jobs");
-    get_jobs_list();
+    fetchJobList();
   }, []);
 
 
@@ -79,7 +82,7 @@ const Jobs = () => {
 
   const handleDuplicateJobClick = async (job) => {
     try {
-      const fetchResponse = await axios.get(`http://127.0.0.1:8000/api/v.1/job/${job.id}`, {
+      const fetchResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/job/${job.id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
@@ -107,7 +110,7 @@ const Jobs = () => {
         job_benefits: originalJob.benefits,
       };
 
-      const createResponse = await axios.post(`http://localhost:8000/api/v.1/job/create`, duplicatedJob, {
+      const createResponse = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/job/create`, duplicatedJob, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           "Content-Type": "application/json",
@@ -116,7 +119,7 @@ const Jobs = () => {
 
       if (createResponse.status === 201) {
         showSnackbar("Job duplicated successfully!", "success");
-        await get_jobs_list();
+        await fetchJobList();
       } else {
         showSnackbar("Failed to duplicate job", "error");
       }
@@ -130,16 +133,16 @@ const Jobs = () => {
     }
   };
 
-
   const handleDeleteClick = (job) => {
     setConfirmDeleteJob(job);
     setIsConfirmModalOpen(true);
   };
+
   const confirmDelete = async () => {
     if (!confirmDeleteJob) return;
     setConfirmDeleteLoading(true); // Start loading
     try {
-      const response = await fetch(`http://localhost:8000/api/v.1/job/delete/${confirmDeleteJob.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/job/delete/${confirmDeleteJob.id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -167,10 +170,11 @@ const Jobs = () => {
     navigate(`/dashboard/jobs/${job.id}/candidates`);
   };
 
-  const handleCandidateUpload = async (formData, showSnackbar) => {
+  const handleCandidateUpload = async (formData) => {
     try {
+      setLoading(true);
       const res = await axios.post(
-        "http://localhost:8000/api/v.1/job-applications",
+        `${import.meta.env.VITE_API_BASE_URL}/job-applications`,
         formData,
         {
           headers: {
@@ -188,7 +192,15 @@ const Jobs = () => {
       }
     } catch (err) {
       showSnackbar(err.response?.data?.message || "Error during upload", "error");
+    } finally {
+      setLoading(false); // Ensures loading is turned off no matter what
     }
+  };
+
+
+  const handleAssignJobClick = (employeeId) => {
+    setSelectedEmployeeId(employeeId);
+    setShowAssignPopup(true);
   };
 
   const closeUploadForm = () => {
@@ -200,12 +212,10 @@ const Jobs = () => {
     }, 300); // match this with the fadeOut duration in Tailwind (0.3s = 300ms)
   };
 
-
-
-  const get_jobs_list = async () => {
+  const fetchJobList = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:8000/api/v.1/job/list", {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/job/list`, {
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer " + localStorage.getItem("access_token"),
@@ -263,6 +273,7 @@ const Jobs = () => {
                         onEditJobClick={handleEditJobClick}
                         onJobOverviewClick={handleJobOverviewClick}
                         onDuplicateJobClick={handleDuplicateJobClick}
+                        onAssignJobClick={handleAssignJobClick}
                         isLoading={false}
                       />
                     );
@@ -290,7 +301,8 @@ const Jobs = () => {
               onClose={closeUploadForm}
               selectedJob={selectedJob}
               sourceId={1}
-              onSubmit={(formData) => handleCandidateUpload(formData, showSnackbar)}
+              loading={loading}
+              onSubmit={(formData) => handleCandidateUpload(formData)}
             />
           </div>
         </div>
@@ -309,6 +321,18 @@ const Jobs = () => {
         cancelText="Cancel"
         confirmVariant="destructive"
       />
+
+      {showAssignPopup && (
+        <AssignJobPopup
+          onClose={() => setShowAssignPopup(false)}
+          onAssign={(employeeId, candidate) => {
+            console.log('Assigned:', employeeId, candidate);
+            // Perform API call or state update
+            setShowAssignPopup(false);
+          }}
+          employeeId={selectedEmployeeId}
+        />
+      )}
     </div>
   )
 }

@@ -14,7 +14,7 @@ const ReviewTab = ({ applicationId }) => {
     const fetchReviews = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8000/api/v.1/job-applications/${applicationId}/reviews`,
+          `${import.meta.env.VITE_API_BASE_URL}/job-applications/${applicationId}/reviews`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -50,7 +50,7 @@ const ReviewTab = ({ applicationId }) => {
               iconSize={28}
               className={"mx-auto"}
             />
-            <h2 className="text-md mt-2">{review.reviewer_name}</h2>
+            <h2 className="text-md mt-2">{review.reviewer_name || "User"}</h2>
             <p className="text-gray-500 text-xs">
               {review.reviewer_address}, {review.reviewer_country}
             </p>

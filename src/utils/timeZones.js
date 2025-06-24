@@ -1,0 +1,38 @@
+const timeZones = [
+  "(GMT-12:00) International Date Line West",
+  "(GMT-11:00) Midway Island, Samoa",
+  "(GMT-10:00) Hawaii",
+  "(GMT-09:00) Alaska",
+  "(GMT-08:00) Pacific Time (US & Canada)",
+  "(GMT-07:00) Mountain Time (US & Canada)",
+  "(GMT-06:00) Central Time (US & Canada), Mexico City",
+  "(GMT-05:00) Eastern Time (US & Canada), Bogota, Lima",
+  "(GMT-04:00) Atlantic Time (Canada), Caracas, La Paz",
+  "(GMT-03:30) Newfoundland",
+  "(GMT-03:00) Brazil, Buenos Aires, Georgetown",
+  "(GMT-02:00) Mid-Atlantic",
+  "(GMT-01:00) Azores, Cape Verde Islands",
+  "(GMT+00:00) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London",
+  "(GMT+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna",
+  "(GMT+02:00) Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius",
+  "(GMT+03:00) Baghdad, Kuwait, Riyadh, Nairobi, Tbilisi",
+  "(GMT+03:30) Tehran",
+  "(GMT+04:00) Abu Dhabi, Muscat, Baku, Tbilisi",
+  "(GMT+04:30) Kabul",
+  "(GMT+05:00) Ekaterinburg, Islamabad, Karachi, Tashkent",
+  "(GMT+05:30) Chennai, Kolkata, Mumbai, New Delhi, Sri Jayawardenepura",
+  "(GMT+05:45) Kathmandu",
+  "(GMT+06:00) Almaty, Dhaka, Colombo",
+  "(GMT+06:30) Yangon, Cocos Islands",
+  "(GMT+07:00) Bangkok, Hanoi, Jakarta",
+  "(GMT+08:00) Beijing, Chongqing, Hong Kong, Urumqi, Kuala Lumpur, Singapore",
+  "(GMT+09:00) Osaka, Sapporo, Tokyo, Seoul, Yakutsk",
+  "(GMT+09:30) Adelaide, Darwin",
+  "(GMT+10:00) Brisbane, Canberra, Melbourne, Sydney, Guam, Vladivostok",
+  "(GMT+11:00) Magadan, Solomon Islands, New Caledonia",
+  "(GMT+12:00) Auckland, Wellington, Fiji, Kamchatka, Marshall Islands",
+  "(GMT+13:00) Nuku'alofa"
+];
+
+  
+  export default timeZones

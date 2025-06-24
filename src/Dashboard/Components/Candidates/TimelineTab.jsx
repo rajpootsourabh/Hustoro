@@ -22,7 +22,7 @@ const TimelineTab = ({ applicationId }) => {
     const fetchLogs = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8000/api/v.1/job-applications/${applicationId}/logs`,
+          `${import.meta.env.VITE_API_BASE_URL}/job-applications/${applicationId}/logs`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -53,7 +53,6 @@ const TimelineTab = ({ applicationId }) => {
           >
             <div className="text-gray-500">
               {iconMap?.[Number(log.to_stage)] || <MessageSquare size={20} />}
-
             </div>
             <img
               src={`https://i.pravatar.cc/40?img=${(index % 70) + 1}`}
@@ -62,7 +61,7 @@ const TimelineTab = ({ applicationId }) => {
             />
             <div className="flex-1 overflow-hidden">
               <div className="text-sm font-medium text-gray-800 truncate">
-                Moved to {log.to_stage_label} by {log.changed_by}
+                Moved to {log.to_stage_label} stage by {log.changed_by}
               </div>
               <div className="text-xs text-gray-500">
                 {log?.updated_at ? moment(log?.updated_at).fromNow() : "N/A"}

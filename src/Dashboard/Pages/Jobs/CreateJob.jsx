@@ -46,7 +46,7 @@ const CreateJob = () => {
   const fetchJobDetails = async (id) => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:8000/api/v.1/job/${id}`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/job/${id}`, {
         headers: {
           "Authorization": "Bearer " + localStorage.getItem("access_token"),
         }
@@ -84,7 +84,7 @@ const CreateJob = () => {
   const updateJob = async (id, values) => {
     try {
       setLoading(true);
-      const response = await axios.put(`http://localhost:8000/api/v.1/job/update/${id}`, values, {
+      const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/job/update/${id}`, values, {
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer " + localStorage.getItem("access_token"),
@@ -168,7 +168,7 @@ const CreateJob = () => {
     try {
       const data = { ...values }
       setLoading(true)
-      const response = await axios.post('http://localhost:8000/api/v.1/job/create', data, {
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/job/create`, data, {
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer " + localStorage.getItem("access_token"),

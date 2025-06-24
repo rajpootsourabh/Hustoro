@@ -8,6 +8,7 @@ import { useSnackbar } from "../../Components/SnackbarContext";
 import { toTitleCase } from "../../../utils/caseConverter";
 import countryList from "../../../utils/countryList";
 import CustomSelect from "../CustomSelect";
+import ActionButton from "../ActionButton";
 
 const initialFormState = {
     firstName: "",
@@ -28,7 +29,7 @@ const initialFormState = {
     email: "",
 };
 
-export default function UploadCandidateForm({ onClose, onSubmit, selectedJob, sourceId = 1 }) {
+export default function UploadCandidateForm({ onClose, onSubmit, selectedJob, sourceId = 1, loading }) {
     const [formData, setFormData] = useState(initialFormState);
     const [errors, setErrors] = useState({});
     const [animateOut, setAnimateOut] = useState(false);
@@ -125,13 +126,22 @@ export default function UploadCandidateForm({ onClose, onSubmit, selectedJob, so
                             Cancel
                         </button>
 
-                        <button
+                        {/* <button
                             type="submit"
                             onClick={handleSubmit} // Trigger form submission
                             className="bg-teal-700 text-white px-5 py-2 rounded-md hover:bg-teal-800 transition"
                         >
                             Add to Sourced
-                        </button>
+                        </button> */}
+
+                        <ActionButton
+                            label="Add to Sourced"
+                            type="submit"
+                            onClick={handleSubmit}
+                            isLoading={loading}
+                            className="w-[150px] h-[38px] px-[20px]"
+                            labelClassName="text-sm"
+                        />
                     </div>
                 </div>
 

@@ -1,8 +1,8 @@
 import { forwardRef } from "react";
-import FormInput from "./FormInput";
-import FormDateInput from "./FormDateInput";
-import FileUpload from "./FileUpload";
-import FormSelect from "./FormSelect";
+import FormInput from "../FormInput";
+import FormDateInput from "../FormDateInput";
+import FileUpload from "../FileUpload";
+import FormSelect from "../FormSelect";
 
 const LegalDocumentsSection = forwardRef(({ data, onChange, errors = {} }, ref) => {
     const handleChange = (field, value) => {
@@ -10,7 +10,7 @@ const LegalDocumentsSection = forwardRef(({ data, onChange, errors = {} }, ref) 
     };
 
     return (
-        <section id="LegalDocuments" ref={ref} className="mt-12">
+        <section id="LegalDocuments" ref={ref} className="scroll-mt-32">
             <h2 className="text-xl mb-4">Legal Documents</h2>
 
             <div className="mb-10">

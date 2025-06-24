@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import FormInput from "./FormInput";
+import FormInput from "../FormInput";
 
 const CompensationBenefitsSection = forwardRef(({ data, onChange, errors = {} }, ref) => {
     const handleInputChange = (field, value) => {
@@ -7,7 +7,7 @@ const CompensationBenefitsSection = forwardRef(({ data, onChange, errors = {} },
     };
 
     return (
-        <section id="CompensationBenefits" ref={ref} className="mt-12">
+        <section id="CompensationBenefits" ref={ref} className="scroll-mt-32">
             <h2 className="text-xl mb-2">Compensation & Benefits</h2>
 
             <div className="mb-10">

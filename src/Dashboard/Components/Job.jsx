@@ -13,7 +13,8 @@ const Job = ({
   onFindDeleteClick,
   onEditJobClick,
   onJobOverviewClick,
-  onDuplicateJobClick
+  onDuplicateJobClick,
+  onAssignJobClick
 }) => {
   const [openDropdownId, setOpenDropdownId] = React.useState(null);
 
@@ -30,6 +31,7 @@ const Job = ({
     { label: "Duplicate job", action: () => onDuplicateJobClick(job) },
     { label: "Find Candidate", action: () => onFindCandidateClick(job) },
     { label: "Delete job", action: () => onFindDeleteClick(job) },
+    // { label: "Assign Job", action: () => onAssignJobClick(job) },
   ];
 
   const renderStat = (label, value) => (
@@ -123,8 +125,8 @@ const Job = ({
           isLoading
             ? <Skeleton variant="text" width={400} height={20} />
             : <p className='text-sm text-gray-500'>
-                Candidates: {stats.total_candidates ?? 0} total, {stats.active_candidates ?? 0} active in pipeline, Last Candidate on {stats.last_candidate_date ?? 'N/A'}
-              </p>
+              Candidates: {stats.total_candidates ?? 0} total, {stats.active_candidates ?? 0} active in pipeline, Last Candidate on {stats.last_candidate_date ?? 'N/A'}
+            </p>
         }
       </div>
     </div>

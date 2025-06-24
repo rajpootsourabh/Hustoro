@@ -18,7 +18,7 @@ const CommunicationTab = ({ applicationId }) => {
     const fetchCommunications = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8000/api/v.1/job-applications/${applicationId}/communications`,
+          `${import.meta.env.VITE_API_BASE_URL}/job-applications/${applicationId}/communications`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,

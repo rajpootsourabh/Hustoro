@@ -101,7 +101,7 @@ const Signup = () => {
   
       console.log(payload);
   
-      const response = await axios.post('http://localhost:8000/api/v.1/register', payload, {
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/register`, payload, {
         headers: {
           'Content-Type': 'application/json',
         },

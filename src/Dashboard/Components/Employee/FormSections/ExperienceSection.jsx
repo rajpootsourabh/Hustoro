@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
-import FormInput from "./FormInput";
-import FileUpload from "./FileUpload";
+import FormInput from "../FormInput";
+import FileUpload from "../FileUpload";
 
 const ExperienceSection = forwardRef(({ data = {}, onChange, errors = {} }, ref) => {
     const handleChange = (field, value) => {
@@ -12,7 +12,7 @@ const ExperienceSection = forwardRef(({ data = {}, onChange, errors = {} }, ref)
     };
 
     return (
-        <section id="Experience" ref={ref}>
+        <section id="Experience" ref={ref} className="scroll-mt-32">
             <h2 className="text-xl mb-4">Experience</h2>
 
             <div className="mb-10">

@@ -36,9 +36,9 @@ export default function SendEmailForm({ candidateData, onClose, onSend, isLoadin
 
           <div className="w-full px-3 py-[6px] border border-gray-300 rounded-md flex items-center gap-2">
             <span className="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded-full">
-              {candidateData?.first_name && candidateData?.last_name
-                ? `${candidateData.first_name} ${candidateData.last_name}`
-                : 'Candidate'}
+              {candidateData?.email
+                ? `${candidateData.email}`
+                : 'No email'}
             </span>
           </div>
         </div>

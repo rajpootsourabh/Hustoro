@@ -20,7 +20,7 @@ const Candidates = () => {
     const fetchCandidates = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("http://localhost:8000/api/v.1/job-applications", {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/job-applications`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

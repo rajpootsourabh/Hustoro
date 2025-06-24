@@ -5,8 +5,8 @@ export default function ActionButton({
   isLoading = false,
   labelClassName = "",
 }) {
-  const hasBgColor = /\bbg-/.test(className); // checks if any bg-* class exists
-  const defaultBg = "bg-teal-600 hover:bg-teal-700";
+  const hasBgColor = /\bbg-/.test(className);
+  const defaultBg = "bg-[#09655c] hover:bg-[#00756A]";
 
   return (
     <button

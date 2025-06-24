@@ -8,7 +8,7 @@
     "build:dashboard": "cross-env VITE_BUILD_TARGET=dashboard vite build --mode dashboard",
     "dev:development": "cross-env VITE_BUILD_TARGET=development vite",
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run build:website",
     "lint": "eslint .",
     "preview": "vite preview"
   },

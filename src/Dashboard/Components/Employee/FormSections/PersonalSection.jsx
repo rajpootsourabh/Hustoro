@@ -1,9 +1,9 @@
 import { forwardRef } from "react";
-import ProfileImageUpload from "./ProfileImageUpload";
-import FormInput from "./FormInput";
-import FormDateInput from "./FormDateInput";
-import CustomSelect from "../CustomSelect";
-import countryList from '../../../utils/countryList';
+import ProfileImageUpload from "../ProfileImageUpload";
+import FormInput from "../FormInput";
+import FormDateInput from "../FormDateInput";
+import CustomSelect from "../../CustomSelect";
+import countryList from '../../../../utils/countryList';
 
 const PersonalSection = forwardRef(({ profileImage, handleImageUpload, data, onChange, errors}, ref) => {
     const handleInputChange = (field, value) => {
@@ -17,7 +17,7 @@ const PersonalSection = forwardRef(({ profileImage, handleImageUpload, data, onC
     };
 
     return (
-        <section id="Personal" ref={ref} className="mt-2">
+        <section id="Personal" ref={ref} className="scroll-mt-32">
             <h2 className="text-xl mb-2">Personal</h2>
             <p className="text-gray-500 text-sm">2/3 mandatory fields</p>
 

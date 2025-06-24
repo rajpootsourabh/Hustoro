@@ -11,7 +11,7 @@ const Dashboard = ({username}) => {
     const navigate = useNavigate()
     const handleLogout = async()=>{
         try {
-            let response = await axios.post('http://localhost:8000/api/v.1/logout')
+            let response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/logout`)
             console.log("response ",response)
             navigate("/")
         } catch (error) {
