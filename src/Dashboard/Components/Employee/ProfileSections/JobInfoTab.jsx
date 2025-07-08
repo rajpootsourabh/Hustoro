@@ -33,7 +33,7 @@ const JobInfoTab = ({ job }) => {
           <Field label="Hire Date" value={formatDate(job?.hire_date)} />
           <Field label="Start Date" value={formatDate(job?.start_date)} />
           <Field label="Department" value={formatValue(job?.department)} />
-          <Field label="Manager" value={formatValue(job?.manager)} />
+          <Field label="Manager" value={formatValue(job?.manager?.name)} />
         </div>
       </div>
 

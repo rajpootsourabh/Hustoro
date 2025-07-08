@@ -34,6 +34,7 @@ const DashboardLayout = () => {
       setRole(user.role);
       setCompanyName(user.company?.name || ""); // safe access
       setCompanyLogo(user.company?.company_logo || ""); // safe access
+      
     }
   }, [location.pathname]);
 

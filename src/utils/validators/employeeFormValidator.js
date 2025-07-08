@@ -14,7 +14,6 @@ export const validatePersonalInfo = (personal) => {
   if (!personal.workEmail || !/\S+@\S+\.\S+/.test(personal.workEmail)) {
     errors.workEmail = "Work email is required and must be a valid email";
   }
-  
 
   // Optional Fields: Only validate if user entered something
 
@@ -56,10 +55,9 @@ export const validateJobInfo = (job) => {
     errors.startDate = "Start date is required";
   }
 
-  if (!job.manager) {
-    errors.manager = "Manager is required";
-  }
-
+  // if (!job.managerId) {
+  //   errors.manager = "Manager is required"; // ✅ use managerId
+  // }
 
   if (!job.employmentType) {
     errors.employmentType = "Employment type is required";
@@ -72,8 +70,6 @@ export const validateJobInfo = (job) => {
       errors.hireDate = "Hire date cannot be in the future";
     }
   }
-
-  
 
   // if (job.expiryDate && new Date(job.expiryDate) < new Date(job.startDate)) {
   //   errors.expiryDate = 'Expiry date must be after start date';
@@ -142,31 +138,22 @@ export const validateEmergencyContact = (emergency) => {
   return errors;
 };
 
-
-
 // Utility functions
 
-export function appendFormData(formData, data, parentKey = '') {
+export function appendFormData(formData, data, parentKey = "") {
   for (const key in data) {
-      const value = data[key];
-      const fullKey = parentKey ? `${parentKey}[${key}]` : key;
+    const value = data[key];
+    const fullKey = parentKey ? `${parentKey}[${key}]` : key;
 
-      if (value instanceof File || value instanceof Blob) {
-          formData.append(fullKey, value);
-      } else if (typeof value === 'object' && value !== null) {
-          appendFormData(formData, value, fullKey); // recurse for nested object
-      } else {
-          formData.append(fullKey, value ?? ''); // treat null/undefined as empty string
-      }
+    if (value instanceof File || value instanceof Blob) {
+      formData.append(fullKey, value);
+    } else if (typeof value === "object" && value !== null) {
+      appendFormData(formData, value, fullKey); // recurse for nested object
+    } else {
+      formData.append(fullKey, value ?? ""); // treat null/undefined as empty string
+    }
   }
 }
-
-
-
-
-
-
-
 
 /**
  * Cleans nested objects by removing empty/null/undefined values.
@@ -227,4 +214,3 @@ export function appendFormData(formData, data, parentKey = '') {
 //     }
 //   }
 // }
-

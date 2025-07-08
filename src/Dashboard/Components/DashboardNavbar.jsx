@@ -106,7 +106,7 @@ const DashboardNavbar = ({ username, role, companyName, employeeId, companyLogo 
         <div className='flex items-center gap-14'>
           <Link to="/dashboard"><img src={logo} alt="logo" width={150} height={100} /></Link>
           <ul className='flex item-center gap-0'>
-            {(menuItemsByRole[role] || []).map(item => (
+            {/* {(menuItemsByRole[role] || []).map(item => (
               <Link key={item.label} to={item.path}>
                 <li
                   className={`${path === item.path.split("/").pop() ? 'bg-[#00756A]' : ''} px-4 py-1.5 rounded-md cursor-pointer font-light`}
@@ -114,7 +114,27 @@ const DashboardNavbar = ({ username, role, companyName, employeeId, companyLogo 
                   {item.label}
                 </li>
               </Link>
-            ))}
+            ))} */}
+            {(menuItemsByRole[role] || [])
+              .filter(item => {
+                let isManager = false;
+                try {
+                  isManager = JSON.parse(localStorage.getItem('isManager')) === true;
+                } catch (e) {
+                  isManager = false;
+                }
+                return !(item.label === 'Attendance' && !isManager);
+              })
+              .map(item => (
+                <Link key={item.label} to={item.path}>
+                  <li
+                    className={`${path === item.path.split("/").pop() ? 'bg-[#00756A]' : ''} px-4 py-1.5 rounded-md cursor-pointer font-light`}
+                  >
+                    {item.label}
+                  </li>
+                </Link>
+              ))}
+
           </ul>
 
         </div>

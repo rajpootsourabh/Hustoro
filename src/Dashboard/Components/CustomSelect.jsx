@@ -1,7 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { FiSearch, FiX } from "react-icons/fi";
 
-export default function CustomSelect({
+const normalizeOption = (option) =>
+  typeof option === "string"
+    ? { value: option, label: option }
+    : option;
+
+const CustomSelect = ({
   label,
   optionsList = [],
   placeholder = "",
@@ -10,7 +15,7 @@ export default function CustomSelect({
   error,
   value,
   onChange = () => {},
-}) {
+}) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedValue, setSelectedValue] = useState(value || "");
   const [open, setOpen] = useState(false);
@@ -18,8 +23,10 @@ export default function CustomSelect({
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
 
-  const filteredOptions = optionsList.filter((option) =>
-    option.toLowerCase().includes(searchTerm.toLowerCase())
+  const normalizedOptions = optionsList.map(normalizeOption);
+
+  const filteredOptions = normalizedOptions.filter((option) =>
+    option.label.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   useEffect(() => {
@@ -27,7 +34,6 @@ export default function CustomSelect({
       setSelectedValue(value);
     }
   }, [value]);
-  
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -41,25 +47,25 @@ export default function CustomSelect({
       }
     };
     document.addEventListener("click", handleClickOutside);
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
   const handleClear = (e) => {
     e.stopPropagation();
     setSelectedValue("");
     setSearchTerm("");
+    onChange("");
   };
 
   const handleSelect = (option) => {
-    setSelectedValue(option);
+    setSelectedValue(option.value);
     setOpen(false);
     setSearchTerm("");
-    onChange(option);
+    onChange(option.value);
   };
 
   const borderStyle = `border ${error ? "border-red-500" : "border-gray-300"}`;
+  const selectedOption = normalizedOptions.find((opt) => opt.value === selectedValue);
 
   return (
     <div className="relative w-full">
@@ -73,20 +79,18 @@ export default function CustomSelect({
         ref={inputRef}
         className={`rounded-md px-3 h-10 flex justify-between items-center cursor-pointer text-sm bg-white w-full ${borderStyle}`}
       >
-        <span
-          className={`text-sm ${selectedValue ? "" : "text-gray-400"} w-full truncate`}
-        >
-          {selectedValue || placeholder}
+        <span className={`text-sm ${selectedOption ? "" : "text-gray-400"} w-full truncate`}>
+          {selectedOption?.label || placeholder}
         </span>
 
         <div className="flex items-center gap-1">
-          {selectedValue && (
+          {selectedOption && (
             <FiX
               className="w-4 h-4 text-gray-500 hover:text-grey-600 cursor-pointer"
               onClick={handleClear}
             />
           )}
-          {!selectedValue && (
+          {!selectedOption && (
             <svg
               className={`w-4 h-4 transform transition-transform ${open ? "rotate-180" : ""}`}
               fill="none"
@@ -94,12 +98,7 @@ export default function CustomSelect({
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M19 9l-7 7-7-7"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
             </svg>
           )}
         </div>
@@ -136,11 +135,11 @@ export default function CustomSelect({
                 <li
                   key={index}
                   className={`text-sm px-4 py-2 hover:bg-yellow-50 cursor-pointer ${
-                    option === selectedValue ? "bg-yellow-100" : ""
+                    option.value === selectedValue ? "bg-yellow-100" : ""
                   }`}
                   onClick={() => handleSelect(option)}
                 >
-                  {option}
+                  {option.label}
                 </li>
               ))
             ) : (
@@ -151,4 +150,6 @@ export default function CustomSelect({
       )}
     </div>
   );
-}
+};
+
+export default CustomSelect;

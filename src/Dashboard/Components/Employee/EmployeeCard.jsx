@@ -81,7 +81,7 @@ export default function EmployeeCard({
                 {isLoading ? (
                     <div className="w-24 h-3 bg-gray-200 rounded animate-pulse" />
                 ) : (
-                    <>Report to {employee?.job_detail?.manager || "N/A"}</>
+                    <>Report to {employee?.job_detail?.manager?.name || "N/A"}</>
                 )}
             </div>
 

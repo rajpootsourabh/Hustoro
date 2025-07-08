@@ -1,18 +1,32 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import HeaderControls from "../../Components/TimeOff/HeaderControls";
 import LeaveSection from "../../Components/TimeOff/LeaveSection";
-import { formatLeaveMonth, getLeaveWeekDates, getLeaveMonthDates } from "../../../utils/leaveDateUtils";
-import TimeOffStatusModal from "../../Components/TimeOff/TimeOffStatusModal";
+import {
+  formatLeaveMonth,
+  getLeaveWeekDates,
+  getLeaveMonthDates,
+  normalizeDate
+} from "../../../utils/leaveDateUtils";
+import axios from "axios";
+import TimeOffApprovalStatusModal from "../../Components/TimeOff/TimeOffApprovalStatusModal";
+import TimeOffRequestReviewModal from "./TimeOffRequestReviewModal";
 
 export default function TimeOff() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState("week");
   const [weekMenuOpen, setWeekMenuOpen] = useState(false);
   const [selectedWeekLabel, setSelectedWeekLabel] = useState("Current Week");
-  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState("All");
+  const [typeMenuOpen, setTypeMenuOpen] = useState(false);
+  const [selectedType, setSelectedType] = useState("All");
   const [modalLeave, setModalLeave] = useState(null);
+  const [modalType, setModalType] = useState(null);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  const handleLeaveClick = (leave) => {
+    setModalLeave(leave);
+    setModalType(leave.status === "pending" ? "review" : "status");
+  };
 
   const switchToWeekView = () => {
     setViewMode("week");
@@ -28,9 +42,8 @@ export default function TimeOff() {
 
   const goToPrev = () => {
     const newDate = new Date(currentDate);
-    if (viewMode === "week") {
-      newDate.setDate(newDate.getDate() - 7);
-    } else {
+    if (viewMode === "week") newDate.setDate(newDate.getDate() - 7);
+    else {
       newDate.setMonth(newDate.getMonth() - 1);
       newDate.setDate(1);
     }
@@ -39,9 +52,8 @@ export default function TimeOff() {
 
   const goToNext = () => {
     const newDate = new Date(currentDate);
-    if (viewMode === "week") {
-      newDate.setDate(newDate.getDate() + 7);
-    } else {
+    if (viewMode === "week") newDate.setDate(newDate.getDate() + 7);
+    else {
       newDate.setMonth(newDate.getMonth() + 1);
       newDate.setDate(1);
     }
@@ -61,61 +73,80 @@ export default function TimeOff() {
 
   const weekDates = getLeaveWeekDates(currentDate);
   const monthDates = getLeaveMonthDates(currentDate);
-
   const days = (viewMode === "month" ? monthDates : weekDates).map((date) =>
     date.toLocaleDateString("en-US", { weekday: "short", day: "numeric" })
   );
 
-  const leaves = [
-    {
-      empId: 1,
-      name: "Milly",
-      initials: "AN",
-      role: "UI/UX Design",
-      hours: "44 Hours",
-      avatar: "https://randomuser.me/api/portraits/women/45.jpg",
-      team: "Frontend",
-      start: new Date(2025, 5, 25),
-      end: new Date(2025, 6, 1),
-      label: "Paid time off",
-    },
-    {
-      empId: 2,
-      name: "Joseph",
-      initials: "",
-      role: "Frontend Dev",
-      hours: "24 Hours",
-      avatar: "https://randomuser.me/api/portraits/men/81.jpg",
-      team: "Frontend",
-      start: new Date(2025, 5, 4),
-      end: new Date(2025, 5, 6),
-      label: "Unpaid Leave",
-    },
-    {
-      empId: 3,
-      name: "Vishal",
-      initials: "",
-      role: "Frontend Dev",
-      hours: "24 Hours",
-      avatar: "https://randomuser.me/api/portraits/men/81.jpg",
-      team: "Backend",
-      start: new Date(2025, 5, 7),
-      end: new Date(2025, 5, 9),
-      label: "Unpaid Leave",
-    },
-    {
-      empId: 4,
-      name: "Subham",
-      initials: "",
-      role: "Frontend Dev",
-      hours: "24 Hours",
-      avatar: "https://randomuser.me/api/portraits/men/14.jpg",
-      team: "Backend",
-      start: new Date(2025, 5, 13),
-      end: new Date(2025, 5, 17),
-      label: "Sick Leave",
-    },
-  ];
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        setLoading(true);
+
+        let startDate, endDate;
+
+        if (viewMode === "week") {
+          const today = new Date(currentDate);
+          const day = today.getDay();
+          const monday = new Date(today);
+          monday.setDate(today.getDate() - ((day + 6) % 7));
+          const sunday = new Date(monday);
+          sunday.setDate(monday.getDate() + 6);
+
+          startDate = monday.toLocaleDateString("en-CA");
+          endDate = sunday.toLocaleDateString("en-CA");
+        } else {
+          const today = new Date(currentDate);
+          const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+          const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+          startDate = firstDay.toLocaleDateString("en-CA");
+          endDate = lastDay.toLocaleDateString("en-CA");
+        }
+
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/time-off-requests/manager`,
+          {
+            headers: {
+              Authorization: "Bearer " + localStorage.getItem("access_token"),
+            },
+            params: {
+              ...(selectedType !== "All" && { type: selectedType }),
+              start_date: startDate,
+              end_date: endDate,
+            },
+          }
+        );
+
+        if (response.data.success) {
+          const formatted = response.data.data.map((emp) => ({
+            empId: emp.empId,
+            name: emp.name,
+            role: emp.role,
+            avatar: emp.avatar,
+            leaves: emp.leaves.map((leave) => ({
+              id: leave.id,
+              start: normalizeDate(leave.start),
+              end: normalizeDate(leave.end),
+              label: leave.label,
+              requestedOn: leave.created_at,
+              status: leave.status,
+            })),
+          }));
+          setEmployees(formatted);
+        } else {
+          console.error("API returned success: false");
+        }
+      } catch (err) {
+        console.error("Error fetching time-off data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmployees();
+  }, [viewMode, currentDate, selectedType]);
+
+
 
   return (
     <div className="p-4 bg-gray-100 min-h-screen">
@@ -132,10 +163,10 @@ export default function TimeOff() {
           setWeekMenuOpen={setWeekMenuOpen}
           selectedWeekLabel={selectedWeekLabel}
           goToWeek={goToWeek}
-          statusMenuOpen={statusMenuOpen}
-          setStatusMenuOpen={setStatusMenuOpen}
-          selectedStatus={selectedStatus}
-          setSelectedStatus={setSelectedStatus}
+          typeMenuOpen={typeMenuOpen}
+          setTypeMenuOpen={setTypeMenuOpen}
+          selectedType={selectedType}
+          setSelectedType={setSelectedType}
         />
 
         <div className="px-4 py-2">
@@ -144,15 +175,30 @@ export default function TimeOff() {
             viewMode={viewMode}
             weekDates={weekDates}
             monthDates={monthDates}
-            leaves={leaves}
-            onLeaveClick={setModalLeave}
+            employees={employees}
+            onLeaveClick={handleLeaveClick}
+            loading={loading}
           />
         </div>
       </div>
-      {modalLeave && (
-        <TimeOffStatusModal
+
+      {modalLeave && modalType === "review" && (
+        <TimeOffRequestReviewModal
           leave={modalLeave}
-          onClose={() => setModalLeave(null)}
+          onClose={() => {
+            setModalLeave(null);
+            setModalType(null);
+          }}
+        />
+      )}
+
+      {modalLeave && modalType === "status" && (
+        <TimeOffApprovalStatusModal
+          leave={modalLeave}
+          onClose={() => {
+            setModalLeave(null);
+            setModalType(null);
+          }}
         />
       )}
     </div>

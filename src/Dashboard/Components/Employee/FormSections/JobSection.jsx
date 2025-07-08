@@ -12,9 +12,9 @@ const JobSection = forwardRef(({ data, onChange, errors }, ref) => {
     };
 
     useEffect(() => {
-        const fetchEmployeeNames = async () => {
+        const fetchEmployeeOptions = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/employee/names`, {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/employee/options`, {
                     headers: {
                         "Authorization": "Bearer " + localStorage.getItem("access_token"),
                     },
@@ -24,21 +24,24 @@ const JobSection = forwardRef(({ data, onChange, errors }, ref) => {
                     const result = await response.json();
                     const employees = result?.data || [];
 
-                    // Map to "FirstName LastName" array:
-                    const options = employees.map((emp) => `${emp.first_name} ${emp.last_name}`);
+                    // Map to array of { value, label } for select component
+                    const options = employees.map((emp) => ({
+                        value: emp.id,
+                        label: emp.name,
+                    }));
 
                     setEmployeeOptions(options);
                 } else {
-                    console.log("Failed to fetch employee names");
+                    console.log("Failed to fetch employee options");
                 }
             } catch (error) {
-                console.error("Error fetching employee names:", error);
-                console.log("An error occurred while fetching employee names");
+                console.error("Error fetching employee options:", error);
             }
         };
 
-        fetchEmployeeNames();
+        fetchEmployeeOptions();
     }, []);
+
 
 
     return (
@@ -96,9 +99,8 @@ const JobSection = forwardRef(({ data, onChange, errors }, ref) => {
                     <CustomSelect
                         label="Manager"
                         optionsList={employeeOptions}
-                        required
-                        value={data.manager || ""}
-                        onChange={(val) => handleChange("manager", val)}
+                        value={data.managerId || ""}
+                        onChange={(val) => handleChange("managerId", val)}
                         error={errors.manager}
                     />
 

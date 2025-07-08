@@ -21,7 +21,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const navigate = useNavigate()
-  
+
   useEffect(() => {
     // get the email from local storage and set it on email
     changeTitle("Login")
@@ -60,6 +60,7 @@ const Login = () => {
   });
 
   const postLogin = async (values) => {
+    localStorage.removeItem('isManager');
     try {
       setLoading(true)
       const payload = {
@@ -74,15 +75,20 @@ const Login = () => {
       });
       console.log("response ", response)
       if (response.status === 200) {
-        const { access_token, user, employee_id } = response.data;
+        const { access_token, user, employee_id, is_manager } = response.data;
 
         localStorage.setItem('access_token', access_token);
         localStorage.setItem('email', values.email);
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('employeeId', JSON.stringify(employee_id));
+
+        // ✅ Only set if key exists
+        if (typeof is_manager !== 'undefined') {
+          localStorage.setItem('isManager', JSON.stringify(is_manager));
+        }
         setLoading(false);
         setSuccess(true);
-        navigate("/dashboard/jobs");
+        navigate("/dashboard");
       } else {
         setLoading(false);
         setSuccess(false);

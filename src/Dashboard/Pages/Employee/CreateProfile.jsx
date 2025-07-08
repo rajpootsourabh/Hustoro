@@ -27,7 +27,7 @@ const CreateProfile = () => {
     const { showSnackbar } = useSnackbar(); // Get the showSnackbar function from the context
     const [activeSection, setActiveSection] = useState("Personal");
     const [profileImage, setProfileImage] = useState(null);
-    
+
     const [errors, setErrors] = useState({
         personal: {},
         job: {},
@@ -95,6 +95,7 @@ const CreateProfile = () => {
                         job: {
                             ...prev.job,
                             ...(preFilledData.jobDetail || {}),
+                            managerId: preFilledData.jobDetail?.manager?.id || "",
                         },
                         compensationBenefits: {
                             ...prev.compensationBenefits,
@@ -112,7 +113,7 @@ const CreateProfile = () => {
                             ...prev.emergency,
                             ...(preFilledData.emergencyContact || {}),
                         },
-                         credentials: {
+                        credentials: {
                             ...prev.credentials,
                             ...(preFilledData.credentials || {}),
                         },

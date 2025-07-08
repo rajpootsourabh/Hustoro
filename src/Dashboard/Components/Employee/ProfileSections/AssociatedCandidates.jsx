@@ -4,6 +4,7 @@ import { getAvatarUrl } from '../../../../utils/avatarUtils.js';
 
 const AssociatedCandidates = ({ candidates = [], loading = false }) => {
   const navigate = useNavigate();
+  console.log(candidates)
 
   const candidateWithAvatars = useMemo(() => {
     return (candidates || []).map((cand) => {
@@ -62,7 +63,7 @@ const AssociatedCandidates = ({ candidates = [], loading = false }) => {
         <div
           key={candidate?.id ?? Math.random()}
           className="bg-white border rounded-xl shadow-sm p-4 flex justify-between cursor-pointer hover:shadow-md transition duration-200"
-          onClick={() => candidate?.id && navigate(`/dashboard/candidates/profile/${candidate.id}`)}
+          onClick={() => candidate?.applications?.[0]?.id && navigate(`/dashboard/candidates/profile/${candidate?.applications?.[0]?.id}`)}
         >
           <div className="flex items-center space-x-4">
             <img

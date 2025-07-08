@@ -197,3 +197,30 @@ input[type="date"]::-moz-calendar-picker-indicator {
   animation-delay: 0.4s;
 }
 
+
+
+/* Custom Scrollbar Styling for .scrollbar-enhanced */
+
+/* Style the entire scrollbar */
+.scrollbar-enhanced::-webkit-scrollbar {
+  width: 6px; /* Make the scrollbar thinner */
+}
+
+/* Style the track (the background behind the thumb) */
+.scrollbar-enhanced::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1); /* Light transparent background for track */
+  border-radius: 4px; /* Rounded edges for smoother look */
+}
+
+/* Style the draggable thumb */
+.scrollbar-enhanced::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.5); /* Semi-transparent white thumb */
+  border-radius: 4px; /* Rounded thumb for better aesthetics */
+}
+
+/* Change thumb color on hover for better visibility */
+.scrollbar-enhanced::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.8); /* Brighter thumb on hover */
+}
+
+
