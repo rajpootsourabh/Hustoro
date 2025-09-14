@@ -123,15 +123,15 @@ const CreateJob = () => {
       job_benefits: ''
     },
     validationSchema: Yup.object({
-      job_title: Yup.string().required('Required'),
-      job_code: Yup.string().required('Required'),
+      job_title: Yup.string().required('Required').max(255, 'Maximum 255 characters allowed'),
+      job_code: Yup.string().required('Required').max(255, 'Maximum 255 characters allowed'),
       job_workplace: Yup.string().required('Required'),
-      job_location: Yup.string().required('Required'),
-      job_department: Yup.string().required('Required'),
-      job_function: Yup.string().required('Required'),
-      employment_type: Yup.string().required('Required'),
-      experience: Yup.string().required('Required'),
-      education: Yup.string().required('Required'),
+      job_location: Yup.string().required('Required').max(255, 'Maximum 255 characters allowed'),
+      job_department: Yup.string().required('Required').max(255, 'Maximum 255 characters allowed'),
+      job_function: Yup.string().required('Required').max(255, 'Maximum 255 characters allowed'),
+      employment_type: Yup.string().required('Required').max(255, 'Maximum 255 characters allowed'),
+      experience: Yup.string().required('Required').max(255, 'Maximum 255 characters allowed'),
+      education: Yup.string().required('Required').max(255, 'Maximum 255 characters allowed'),
       keywords: Yup.array().min(1, 'At least one keyword is required'),
       annual_salary_from: Yup.number()
         .typeError('Must be a number')
@@ -147,10 +147,12 @@ const CreateJob = () => {
       annual_salary_to: Yup.number()
         .typeError('Must be a number')
         .required('Required'),
-      currency: Yup.string().required('Required'),
-      job_description: Yup.string().required('Required'),
-      job_requirements: Yup.string().required('Required'),
-      job_benefits: Yup.string().required('Required')
+      currency: Yup.string().required('Required').max(10, 'Maximum 10 characters allowed'),
+
+      // fields with 600 char limit
+      job_description: Yup.string().required('Required').max(600, 'Maximum 600 characters allowed'),
+      job_requirements: Yup.string().required('Required').max(600, 'Maximum 600 characters allowed'),
+      job_benefits: Yup.string().required('Required').max(600, 'Maximum 600 characters allowed'),
     }),
 
 

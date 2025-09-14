@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import TimeOffRequestModal from './TimeOffRequestModal';
+import { Pencil } from 'lucide-react';
 import axios from 'axios';
+import EditLeaveBalanceModal from '../../Components/TimeOff/EditLeaveBalanceModal';
 
 export default function LeaveBalance() {
   const [showModal, setShowModal] = useState(false);
+  const [editLeave, setEditLeave] = useState(null);
   const [leaveBalances, setLeaveBalances] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,7 +23,6 @@ export default function LeaveBalance() {
       });
 
       if (response.data.success) {
-
         const sorted = response.data.data
           .sort((a, b) => {
             const preferredOrder = ['Paid Time Off', 'Sick Leave', 'Unpaid Leave'];
@@ -29,6 +31,7 @@ export default function LeaveBalance() {
             return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
           })
           .map((item) => ({
+            id: item.id,
             name: item.type,
             value: item.type === 'Unpaid Leave' && item.remaining_days === 0 ? '∞' : item.remaining_days,
             unit: 'Days available',
@@ -75,14 +78,31 @@ export default function LeaveBalance() {
             {leaveBalances.map((leave) => (
               <div
                 key={leave.id}
-                className={`rounded-lg border px-6 py-2 ${leave.active
+                className={`relative rounded-lg border px-6 py-2 ${leave.active
                   ? 'bg-teal-700 text-white border-teal-700'
                   : 'border-gray-400 text-black'
                   }`}
               >
+                {/* Conditionally Render Edit Icon */}
+                {leave.name !== 'Unpaid Leave' && (
+                  <div className="absolute top-1/2 right-2 transform -translate-y-1/2">
+                    <button
+                      onClick={() => setEditLeave(leave)}
+                      className={`hover:scale-110 transition-transform ${leave.active ? 'text-white' : 'text-gray-500 hover:text-gray-800'
+                        }`}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
                 <div className="text-sm font-semibold mb-2">{leave.name}</div>
                 <div className="text-3xl font-extrabold mb-1">
-                  {leave.value === '∞' ? <span className="text-5xl font-extrabold leading-none">∞</span> : leave.value}
+                  {leave.value === '∞' ? (
+                    <span className="text-5xl leading-none">∞</span>
+                  ) : (
+                    leave.value
+                  )}
                 </div>
                 <div className="text-sm">{leave.unit}</div>
               </div>
@@ -91,7 +111,20 @@ export default function LeaveBalance() {
         )}
       </div>
 
+      {/* Request Time Off Modal */}
       {showModal && <TimeOffRequestModal onClose={() => setShowModal(false)} />}
+
+      {/* Edit Leave Balance Modal from Separate File */}
+      {editLeave && (
+        <EditLeaveBalanceModal
+          leave={editLeave}
+          onClose={() => setEditLeave(null)}
+          onSaved={() => {
+            setEditLeave(null);
+            fetchLeaveBalances(); // ✅ Refresh the data
+          }}
+        />
+      )}
     </>
   );
 }

@@ -13,14 +13,26 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import PersonIcon from "@mui/icons-material/Person";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import SettingsIcon from "@mui/icons-material/Settings";
-import BusinessIcon from "@mui/icons-material/Business";
-import AppsIcon from "@mui/icons-material/Apps";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { getAvatarUrl } from "../../utils/avatarUtils.js";
 
-const UserMenu = ({ loading, username, companyName, companyLogo, role, handleLogout, handleViewProfile, handleNavigateToSettings }) => {
+const UserMenu = ({
+  loading,
+  handleLogout,
+  handleViewProfile,
+  handleNavigateToSettings,
+}) => {
   const [anchorEl, setAnchorEl] = useState(null);
-  const name = username?.split("@")[0] || "User";
+
+  // ✅ Get user info from localStorage
+  const user = JSON.parse(localStorage.getItem("user"));
+  const role = user?.role;
+  const email = user?.email || "user@example.com";
+  const company = user?.company || {};
+  const companyName = company?.name || "Company";
+  const companyLogo = company?.company_logo;
+
+  const name = email?.split("@")[0] || "User";
 
   const handleOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -40,7 +52,7 @@ const UserMenu = ({ loading, username, companyName, companyLogo, role, handleLog
         <Box
           onClick={handleOpen}
           sx={{
-            width: 80, // fixed width
+            width: 80,
             height: 30,
             backgroundColor: "#ffffff",
             borderRadius: "4px",
@@ -107,31 +119,30 @@ const UserMenu = ({ loading, username, companyName, companyLogo, role, handleLog
             variant="body2"
             sx={{
               color: "gray",
-              fontSize: "1rem", // equivalent to Tailwind's text-md
+              fontSize: "1rem",
             }}
           >
             {name}
           </Typography>
 
-          {role === 4 && (
+          {/* ✅ Conditionally show View Profile for role === 5 */}
+          {role === 5 && (
             <button
               onClick={() => {
                 handleViewProfile();
                 handleClose();
               }}
-              className="w-[90%] mx-auto mt-3 text-sm text-teal-700 font-medium border border-teal-500 px-4 py-1.5 rounded-md hover:bg-teal-50 transition"
+              className="w-[90%] mx-auto mt-3 text-sm text-teal-700 font-medium border border-teal-500 px-4 py-1.5 rounded-md hover:bg-teal-50 transition flex items-center justify-center gap-2"
             >
-              View profile
+              <VisibilityIcon fontSize="small" />
+              View Profile
             </button>
           )}
-
-
         </Box>
 
         <Divider sx={{ my: 1 }} />
 
-        {/* Unified Options */}
-        {/* Settings should not be shown if role === 5 */}
+        {/* Settings (only if not role 5) */}
         {role !== 5 && (
           <MenuItem
             onClick={() => {
@@ -143,20 +154,14 @@ const UserMenu = ({ loading, username, companyName, companyLogo, role, handleLog
             <ListItemText primary="Settings" />
           </MenuItem>
         )}
-        {/* <MenuItem onClick={handleClose}>
-          <ListItemIcon><BusinessIcon fontSize="small" /></ListItemIcon>
-          <ListItemText primary="Switch company" />
-        </MenuItem>
-        <MenuItem onClick={handleClose}>
-          <ListItemIcon><AppsIcon fontSize="small" /></ListItemIcon>
-          <ListItemText primary="Switch app" />
-        </MenuItem> */}
+
+        {/* Help Option */}
         <MenuItem onClick={handleClose}>
           <ListItemIcon><HelpOutlineIcon fontSize="small" /></ListItemIcon>
           <ListItemText primary="Help" />
         </MenuItem>
 
-        {/* Logout */}
+        {/* Logout Option */}
         <MenuItem onClick={handleLogout} disabled={loading}>
           <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
           <ListItemText primary="Logout" />

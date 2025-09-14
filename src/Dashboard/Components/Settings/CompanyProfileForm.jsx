@@ -216,7 +216,7 @@ export default function CompanyProfileForm() {
                     <div>
                         <p className="text-sm font-medium text-gray-700 mb-1">Company Logo</p>
                         <p className="text-sm text-gray-500 mb-3">
-                            Bipani displays your company’s logo in your careers page, in emails to candidates as well as some job boards.
+                            Hustoro displays your company’s logo in your careers page, in emails to candidates as well as some job boards.
                         </p>
 
                         {formValues.companyLogoUrl && (

@@ -4,6 +4,7 @@ import { GoPerson } from "react-icons/go";
 
 export default function EmployeeCard({
     employee,
+    loggedInEmployeeId,
     isLoading = false,
     openDropdownId,
     handleMoreVerticalClick,
@@ -97,14 +98,16 @@ export default function EmployeeCard({
                     />
                     {openDropdownId === employee?.id && (
                         <div className="dropdown-menu absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-md z-30">
-                            <button
-                                className="w-full text-left px-4 py-2 hover:bg-teal-50 text-sm rounded-t-lg"
-                                onClick={() =>
-                                    navigate(`/dashboard/employee/${employee.id}/edit`, { state: { employee } })
-                                }
-                            >
-                                Edit Profile
-                            </button>
+                            {loggedInEmployeeId === employee.id && (
+                                <button
+                                    className="w-full text-left px-4 py-2 hover:bg-teal-50 text-sm rounded-t-lg"
+                                    onClick={() =>
+                                        navigate(`/dashboard/employee/${employee.id}/edit`, { state: { employee } })
+                                    }
+                                >
+                                    Edit Profile
+                                </button>
+                            )}
                             <button
                                 className="w-full text-left px-4 py-2 hover:bg-teal-50 text-sm"
                                 onClick={() =>

@@ -5,7 +5,7 @@ import signup_bg from '../../assets/signup-bg.png';
 import white_tick from '../../assets/white-tick.png';
 import spinner from '../../assets/white-spinner.svg'
 // import icon from '../../assets/Icon.png';
-import icon from '../../assets/logo.png';
+import logo from '../../assets/logo_white.png'
 import TextField from '@mui/material/TextField';
 import Checkbox from '@mui/material/Checkbox';
 import Button from '@mui/material/Button';
@@ -83,9 +83,9 @@ const Signup = () => {
         .filter(item => item.checked)
         .map(item => item.name)
         .join(', ');
-  
+
       setloading(true);
-  
+
       const payload = {
         companyName: values.companyName,
         companyWebsite: values.companyWebsite,
@@ -98,15 +98,15 @@ const Signup = () => {
         email: values.email,
         password: values.password,
       };
-  
+
       console.log(payload);
-  
+
       const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/register`, payload, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
-  
+
       if (response.status === 201) {
         showSnackbar("Signup successful");
         setSuccess(true);
@@ -118,7 +118,7 @@ const Signup = () => {
       }
     } catch (error) {
       console.error("Signup error:", error);
-  
+
       let message = "An error occurred";
       if (error.response?.data?.message) {
         const keys = Object.keys(error.response.data.message);
@@ -126,14 +126,14 @@ const Signup = () => {
           message = error.response.data.message[keys[0]][0];
         }
       }
-  
+
       setError(message);
       setSuccess(false);
     } finally {
       setloading(false);
     }
   };
-  
+
 
   const points = [
     'Find, hire, onboard for every job.',
@@ -165,8 +165,8 @@ const Signup = () => {
       }
       <div className='max-w-[1700px] grid [@media(min-width:1000px)]:grid-cols-2 grid-cols-1 gap-5 items-center text-white'>
         <div className='xl:pl-40 md:pl-10 flex-col gap-6 [@media(min-width:1000px)]:flex hidden'>
-          {/* <img src={icon} className='w-16 h-16' /> */}
-          <img src={icon} className='w-fit h-16' />
+          <img src={logo} alt="Logo" className="h-16 w-fit" />
+
           <p className='text-3xl font-semibold'>Big ideas. Amazing talent.The recruiting software that brings them together.</p>
           <div className='flex flex-col gap-4'>
             {points.map((item) => (

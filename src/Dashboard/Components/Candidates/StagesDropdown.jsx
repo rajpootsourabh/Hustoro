@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { stageMap, stageLabels } from '../../../utils/stageUtils';
+import { useRoleEnabled } from '../../../hooks/useRoleEnabled'; // Import the hook
 
-export default function StagesDropdown({ currentStage = 1, stages = [], onSelect }) {
+export default function StagesDropdown({ currentStage = 1, stages = [], onSelect, disabled = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [dropUp, setDropUp] = useState(false);
   const [selectedStage, setSelectedStage] = useState(null);
@@ -11,6 +12,7 @@ export default function StagesDropdown({ currentStage = 1, stages = [], onSelect
   const iconRef = useRef(null);
   const buttonRef = useRef(null);
 
+  const isEnabled = useRoleEnabled(5) && !disabled; // Use hook and prop
 
   // Sync selected stage from props
   useEffect(() => {
@@ -24,35 +26,31 @@ export default function StagesDropdown({ currentStage = 1, stages = [], onSelect
 
   const isLoading = selectedStage === null || !stages.includes(selectedStage);
 
-  // const label = isLoading
-  //   ? "Loading..."
-  //   : nextStage
-  //     ? `Move to ${stageLabels[stageMap[nextStage-1]]}`
-  //     : `${stageLabels[stageMap[selectedStage]]}`;
-
-    const label = isLoading
+  const label = isLoading
     ? "Loading..."
     : nextStage
-      ? `${stageLabels[stageMap[nextStage-1]]}`
+      ? `${stageLabels[stageMap[nextStage - 1]]}`
       : `${stageLabels[stageMap[selectedStage]]}`;
 
   const toggleDropdown = (e) => {
     e.stopPropagation();
-    setIsOpen((prev) => !prev);
+    if (isEnabled) {
+      setIsOpen((prev) => !prev);
+    }
   };
 
   const handleMoveToNextStage = () => {
-    if (!isLoading && nextStage) {
+    if (!isLoading && nextStage && isEnabled) {
       setSelectedStage(nextStage);
-      onSelect(nextStage); // Send numeric stage value to API
+      onSelect(nextStage);
       setIsOpen(false);
     }
   };
 
   const handleSelect = (stage) => {
-    if (stage !== selectedStage) {
+    if (stage !== selectedStage && isEnabled) {
       setSelectedStage(stage);
-      onSelect(stage); // Send numeric stage value to API
+      onSelect(stage);
       setIsOpen(false);
     }
   };
@@ -92,8 +90,8 @@ export default function StagesDropdown({ currentStage = 1, stages = [], onSelect
       <button
         ref={buttonRef}
         onClick={handleMoveToNextStage}
-        disabled={isLoading || !nextStage}
-        className="flex-1 text-sm px-4 py-2 text-left cursor-pointer rounded-l-3xl hover:bg-teal-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        disabled={isLoading || !nextStage || !isEnabled}
+        className={`flex-1 text-sm px-4 py-2 text-left cursor-pointer rounded-l-3xl hover:bg-teal-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
       >
         {isLoading && <Loader2 size={16} className="animate-spin" />}
         {label}
@@ -102,7 +100,8 @@ export default function StagesDropdown({ currentStage = 1, stages = [], onSelect
       <button
         onClick={toggleDropdown}
         ref={iconRef}
-        className="px-3 py-[10px] rounded-r-3xl hover:bg-teal-800 focus:outline-none transition"
+        disabled={!isEnabled}
+        className={`px-3 py-[10px] rounded-r-3xl hover:bg-teal-800 focus:outline-none transition ${!isEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <ChevronDown
           size={16}
@@ -110,7 +109,7 @@ export default function StagesDropdown({ currentStage = 1, stages = [], onSelect
         />
       </button>
 
-      {isOpen && (
+      {isOpen && isEnabled && (
         <div
           className={`absolute z-[9999] w-60 bg-white text-black border border-gray-200 rounded-xl shadow-lg right-0 py-2
           ${dropUp ? "bottom-full mb-2" : "top-full mt-2"} animate-fade-in`}

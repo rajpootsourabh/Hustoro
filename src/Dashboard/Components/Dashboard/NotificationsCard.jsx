@@ -45,22 +45,23 @@ const NotificationsCard = ({ notifications, onNotificationClick, isLoading }) =>
             <NotificationSkeleton key={i} />
           ))}
         </>
-      ) : displayNotifications.length === 0 ? (
+      ) : notifications.length === 0 ? (
         <p className="text-sm text-center text-gray-400">No notifications</p>
       ) : (
-        displayNotifications.map((n, i) => (
-          <div key={n.id}>
-            <NotificationItem
-              notification={n}
-              onClick={onNotificationClick}
-            />
-            {i < displayNotifications.length - 1 && (
-              <hr className="border-t border-gray-200 mx-2" />
-            )}
-          </div>
-        ))
+        // Add scrollable wrapper
+        <div className="max-h-[250px] overflow-y-auto space-y-2 pr-1">
+          {notifications.map((n, i) => (
+            <div key={n.id}>
+              <NotificationItem notification={n} onClick={onNotificationClick} />
+              {i < notifications.length - 1 && (
+                <hr className="border-t border-gray-200 mx-2" />
+              )}
+            </div>
+          ))}
+        </div>
       )}
     </div>
+
   );
 };
 

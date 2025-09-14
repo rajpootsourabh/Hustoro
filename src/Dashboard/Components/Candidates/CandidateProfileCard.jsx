@@ -1,28 +1,36 @@
 import React from 'react';
 import { MapPinIcon, PhoneIcon } from '@heroicons/react/24/solid';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Camera } from 'lucide-react';
 import ProfileImage from '../ProfileImage';
 import { getStageLabelFromNumber } from '../../../utils/stageUtils';
+import { getAvatarUrl } from '../../../utils/avatarUtils.js';
 
-export default function CandidateProfileCard({ candidateData, isLoading = false }) {
+export default function CandidateProfileCard({ candidateData, isLoading = false, onProfileUpload }) {
+    console.log("New photo: "+candidateData?.candidate?.profile_pic)
     return (
         <div className="bg-white px-8 py-12 rounded-xl shadow-sm flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
 
             {/* Profile Image */}
-
-            {isLoading ? (
-                <div className="w-20 h-20 rounded-full overflow-hidden shrink-0">
-                    <div className="w-full h-full bg-gray-200 animate-pulse"></div>
-                </div>
-            ) : (
-                <ProfileImage
-                    src={candidateData?.candidate?.profile_pic}
-                    alt="Profile"
-                    height={24}
-                    width={24}
-                    iconSize={50}
-                />
-            )}
+            <div className="relative w-20 h-20 shrink-0 rounded-full overflow-hidden">
+                {isLoading ? (
+                    <div className="w-full h-full bg-gray-200 animate-pulse rounded-full"></div>
+                ) : (
+                    <>
+                        <img
+                            src={getAvatarUrl(candidateData?.candidate?.first_name, candidateData?.candidate?.last_name, candidateData?.candidate?.profile_pic)}
+                            alt="Profile"
+                            className="w-full h-full object-cover rounded-full border"
+                        />
+                        {/* Hover overlay */}
+                        <div
+                            className="absolute inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 cursor-pointer transition-opacity rounded-full"
+                            onClick={() => onProfileUpload && onProfileUpload()}
+                        >
+                            <Camera className="text-white w-6 h-6" />
+                        </div>
+                    </>
+                )}
+            </div>
 
             {/* Text Info */}
             <div className="flex-grow text-center md:text-left">
@@ -34,10 +42,9 @@ export default function CandidateProfileCard({ candidateData, isLoading = false 
                             <div className="h-3 bg-gray-200 rounded w-24 animate-pulse"></div>
                         </div>
                         <div className="flex flex-col mt-2 space-y-1 items-center md:items-start">
-                            <div className="h-3 bg-gray-200 rounded w-28 animate-pulse"></div> {/* experience skeleton */}
-                            <div className="h-3 bg-gray-200 rounded w-20 animate-pulse"></div> {/* referrals skeleton */}
+                            <div className="h-3 bg-gray-200 rounded w-28 animate-pulse"></div>
+                            <div className="h-3 bg-gray-200 rounded w-20 animate-pulse"></div>
                         </div>
-
                     </>
                 ) : (
                     <>
@@ -59,7 +66,6 @@ export default function CandidateProfileCard({ candidateData, isLoading = false 
                                 {candidateData?.candidate?.location
                                     ? `${candidateData.candidate.location}, ${candidateData.candidate.country || ''}`
                                     : 'Not specified'}
-
                             </p>
                             <p className="flex items-center text-xs">
                                 <PhoneIcon className="w-4 h-4 mr-1" />
@@ -73,7 +79,6 @@ export default function CandidateProfileCard({ candidateData, isLoading = false 
                             </p>
                         )}
                         <p className="text-xs text-blue-500 mt-1">#referrals</p>
-
                     </>
                 )}
             </div>

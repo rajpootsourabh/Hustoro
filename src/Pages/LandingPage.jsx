@@ -10,7 +10,7 @@ import Footer from '../Components/Footer'
 import { changeTitle } from '../utils/changeTitle'
 const LandingPage = () => {
   useEffect(()=>{
-    changeTitle("Bipani")
+    changeTitle("Hustoro")
   },[])
   
   return (

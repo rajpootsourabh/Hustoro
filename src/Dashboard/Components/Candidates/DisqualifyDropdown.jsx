@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Hand, ChevronDown, ArrowLeft } from "lucide-react";
+import { useRoleEnabled } from '../../../hooks/useRoleEnabled'; // Import the hook
 
-export default function DisqualifyDropdown({ onSelectReason }) {
+export default function DisqualifyDropdown({ onSelectReason, disabled = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [dropUp, setDropUp] = useState(false);
   const [customReason, setCustomReason] = useState("");
@@ -9,6 +10,9 @@ export default function DisqualifyDropdown({ onSelectReason }) {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const wrapperRef = useRef(null);
   const buttonRef = useRef(null);
+
+  const buttonClasses = "w-10 h-9 flex items-center justify-center hover:bg-red-200 transition-colors disabled:hover:bg-red-100";
+  const isEnabled = useRoleEnabled(5) && !disabled; // Use hook and fallback
 
   const reasons = [
     "Lack of experience",
@@ -18,7 +22,6 @@ export default function DisqualifyDropdown({ onSelectReason }) {
     "Other",
   ];
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -36,7 +39,6 @@ export default function DisqualifyDropdown({ onSelectReason }) {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Position dropdown smartly
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
@@ -48,6 +50,7 @@ export default function DisqualifyDropdown({ onSelectReason }) {
   }, [isOpen, showCustomInput]);
 
   const handleReasonClick = (reason) => {
+    if (!isEnabled) return;
     if (reason === "Other") {
       setShowCustomInput(true);
     } else {
@@ -57,6 +60,7 @@ export default function DisqualifyDropdown({ onSelectReason }) {
   };
 
   const handleCustomSubmit = () => {
+    if (!isEnabled) return;
     if (customReason.trim() === "") {
       setCustomReasonError(true);
     } else {
@@ -75,6 +79,7 @@ export default function DisqualifyDropdown({ onSelectReason }) {
   };
 
   const handleImmediateReject = () => {
+    if (!isEnabled) return;
     onSelectReason(""); // No reason provided
     setIsOpen(false);
     setShowCustomInput(false);
@@ -86,30 +91,34 @@ export default function DisqualifyDropdown({ onSelectReason }) {
     <div className="relative inline-block" ref={wrapperRef}>
       <div
         ref={buttonRef}
-        className="rounded-md bg-red-100 text-red-600 flex items-center overflow-hidden"
+        className={`rounded-md flex items-center overflow-hidden bg-red-100 ${!isEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <button
           onClick={handleImmediateReject}
           data-tooltip-id="tooltip"
           data-tooltip-content="Disqualify candidate immediately"
-          className="w-10 h-9 flex items-center justify-center hover:bg-red-200 transition-colors"
+          disabled={!isEnabled}
+          className={buttonClasses}
         >
           <Hand size={16} />
         </button>
+
         <button
-          onClick={() => setIsOpen((prev) => !prev)}
+          onClick={() => isEnabled && setIsOpen((prev) => !prev)}
           data-tooltip-id="tooltip"
           data-tooltip-content="Select disqualification reason"
-          className="w-10 h-9 flex items-center justify-center hover:bg-red-200 transition-colors"
+          disabled={!isEnabled}
+          className={buttonClasses}
         >
           <ChevronDown
             size={16}
-            className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+            className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""} ${!isEnabled ? "text-gray-400" : "text-gray-600"}`}
           />
         </button>
+
       </div>
 
-      {isOpen && (
+      {isOpen && isEnabled && (
         <div
           className={`absolute z-50 w-64 bg-white py-2 border border-gray-200 rounded-xl shadow-lg animate-fade-in right-0 ${dropUp ? "bottom-full mb-2" : "top-full mt-2"
             }`}
@@ -145,8 +154,8 @@ export default function DisqualifyDropdown({ onSelectReason }) {
                 }}
                 placeholder="Enter custom reason"
                 className={`w-full h-[80px] border rounded-md px-2 py-2 text-sm resize-none focus:outline-none focus:ring-2 ${customReasonError
-                    ? "border-red-500 ring-red-200"
-                    : "border-gray-300 focus:ring-red-200"
+                  ? "border-red-500 ring-red-200"
+                  : "border-gray-300 focus:ring-red-200"
                   }`}
               />
               <button

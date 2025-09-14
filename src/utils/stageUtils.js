@@ -3,10 +3,11 @@
 export const stageMap = {
   1: "source",
   2: "applied",
-  3: "assessment",
-  4: "phone_screen",
+  3: "phone_screen",
+  4: "assessment",
   5: "interview",
-  6: "hired"
+  6: "offer",
+  7: "hired",
 };
 
 export const reverseStageMap = Object.fromEntries(
@@ -16,10 +17,11 @@ export const reverseStageMap = Object.fromEntries(
 export const stageLabels = {
   source: "Source",
   applied: "Applied",
-  assessment: "Assessment",
   phone_screen: "Phone Screen",
+  assessment: "Assessment",
   interview: "Interview",
-  hired: "Hired"
+  offer: "Offer",
+  hired: "Hired",
 };
 
 export function getStageLabelFromNumber(number) {

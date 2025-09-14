@@ -163,14 +163,14 @@ export default function UploadCandidateForm({ onClose, onSubmit, selectedJob, so
                                 onChange={handleChange("lastName")}
                                 error={errors?.lastName}
                             />
-                            <FormSelect
+                            <FormInput
                                 label="Location"
                                 required
                                 value={formData.location}
                                 onChange={handleChange("location")}
-                                options={["Delhi", "Bangalore", "Remote"]}
                                 error={errors?.location}
                             />
+
                             <CustomSelect
                                 label="Country"
                                 optionsList={countryList}

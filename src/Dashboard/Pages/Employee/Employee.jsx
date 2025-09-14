@@ -6,6 +6,7 @@ import axios from "axios";
 import { useSnackbar } from "../../Components/SnackbarContext";
 import EmployeeCard from "../../Components/Employee/EmployeeCard";
 import AssignCandidatePopup from "../../Components/Employee/AssignCandidatePopup";
+import { useEmployeePermissions } from "../../../hooks/useEmployeePermissions";
 
 export default function Employee() {
     const [isFocused, setIsFocused] = useState(false);
@@ -18,28 +19,34 @@ export default function Employee() {
     const [itemsPerPage, setItemsPerPage] = useState(6);
     const [showAssignPopup, setShowAssignPopup] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const [loggedInEmployeeId, setLoggedInEmployeeId] = useState(null);
     const { showSnackbar } = useSnackbar();
+    const { role, isManager, isAddEmployeeEnabled } = useEmployeePermissions();
 
     //Find out permanent solution 
-    const [role, setRole] = useState(null);
+    // const [role, setRole] = useState(null);
 
     // Read role from localStorage once after mount
-    useEffect(() => {
-        const userString = localStorage.getItem("user");
-        console.log("Loaded userString:", userString);
+    // useEffect(() => {
+    //     const userString = localStorage.getItem("user");
+    //     const employeeIdString = localStorage.getItem("employeeId");
 
-        if (userString) {
-            const user = JSON.parse(userString);
-            console.log("Parsed user:", user);
-            console.log("User role:", user.role);
-            setRole(Number(user.role));
+    //     if (userString) {
+    //         try {
+    //             const user = JSON.parse(userString);
+    //             const employeeId = Number(employeeIdString); // safely convert to number
 
-            // If role is 5, close dropdown:
-            if (Number(user.role) === 5) {
-                setOpenDropdownId(null);
-            }
-        }
-    }, []);
+    //             setRole(Number(user.role));
+    //             setLoggedInEmployeeId(employeeId);
+
+    //             if (Number(user.role) === 5 ) {
+    //                 setOpenDropdownId(null);
+    //             }
+    //         } catch (e) {
+    //             console.error("Error parsing user or employeeId from localStorage:", e);
+    //         }
+    //     }
+    // }, []);
 
 
     const dropdownRef = useRef(null);
@@ -143,6 +150,7 @@ export default function Employee() {
         }
     };
 
+    const isEnabled = role === 5;
 
     if (loading) return <Loader message="Fetching employee data..." />;
 
@@ -177,15 +185,19 @@ export default function Employee() {
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() =>
-                                    setOpenDropdownId((prevId) => (prevId === null ? "add" : null))
+                                    isAddEmployeeEnabled && setOpenDropdownId((prevId) => (prevId === null ? "add" : null))
                                 }
-                                className="text-sm px-6 py-[8px] border-[1.5px] border-teal-700 text-teal-700 rounded-full font-semibold hover:bg-teal-50 flex items-center gap-2"
+                                disabled={!isAddEmployeeEnabled}
+                                className={`text-sm px-6 py-[8px] border-[1.5px] rounded-full font-semibold flex items-center gap-2 transition-colors ${isAddEmployeeEnabled
+                                    ? "border-teal-700 text-teal-700 hover:bg-teal-50"
+                                    : "border-gray-300 text-gray-400 cursor-not-allowed bg-gray-100"
+                                    }`}
                             >
                                 Add Employee
                                 <ChevronDown className="w-4 h-4" />
                             </button>
 
-                            {role !== 5 && openDropdownId === "add" && (
+                            {openDropdownId === "add" && isAddEmployeeEnabled && (
                                 <div className="dropdown-menu absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-md z-10">
                                     <button
                                         onClick={() => handleDropdownSelect("Add manually")}
@@ -202,6 +214,7 @@ export default function Employee() {
                                 </div>
                             )}
                         </div>
+
                     </div>
 
                     {/* Search Input */}
@@ -250,6 +263,7 @@ export default function Employee() {
                         <EmployeeCard
                             key={employee.id}
                             employee={employee}
+                            loggedInEmployeeId={loggedInEmployeeId}
                             openDropdownId={openDropdownId}
                             handleMoreVerticalClick={() =>
                                 setOpenDropdownId(prev => prev === employee.id ? null : employee.id)

@@ -1,6 +1,6 @@
 import React, { useState,useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import logo from '../assets/logo.png'
+import logo from '../assets/logo_blue.png'
 import Button from '@mui/material/Button';
 const Navbar = () => {
   const [page,setPage] = useState("")
@@ -18,7 +18,7 @@ const Navbar = () => {
     <nav className="bg-white sticky top-0 z-50 shadow-lg">
       <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link to="/"><img src={logo} alt="logo" width={150} height={100}/></Link>
+          <Link to="/"><img src={logo} alt="logo" width={160} height={100}/></Link>
 
           {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-5">

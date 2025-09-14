@@ -11,6 +11,7 @@ import SendTextMessageForm from '../../Components/Candidates/SendTextMessageForm
 import SubmitReviewForm from '../../Components/Candidates/SubmitReviewForm';
 import { useSnackbar } from "../../../Dashboard/Components/SnackbarContext";
 import JobOverviewCard from '../../Components/Candidates/JobOverviewCard';
+import FileUploadDialog from '../../Components/FileUploadDialog';
 
 
 export default function CandidateProfile() {
@@ -18,12 +19,57 @@ export default function CandidateProfile() {
     const { id } = useParams();
     const [candidateData, setCandidateData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const [stage, setStage] = useState('');
     const [activeForm, setActiveForm] = useState('none');
     const [isSubmittingReview, setIsSubmittingReview] = useState(false);
     const [isSendingEmail, setIsSendingEmail] = useState(false);
     const { showSnackbar } = useSnackbar();
+    const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+    const handleProfileUploadClick = () => setIsUploadDialogOpen(true);
+
+    // Handle profile pic update
+const handleProfileFileSubmit = async (file) => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('profile_pic', file); // your endpoint expects 'file'
+
+    try {
+        const response = await axios.post(
+            `${import.meta.env.VITE_API_BASE_URL}/job-applications/${id}/files`,
+            formData,
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+                    'Content-Type': 'multipart/form-data',
+                },
+            }
+        );
+
+        const updatedCandidate = response.data.candidate;
+
+        // Add cache-busting query param to profile_pic
+        updatedCandidate.profile_pic = updatedCandidate.profile_pic + `?t=${Date.now()}`;
+
+        // Update state with new candidate object
+        setCandidateData((prev) => ({
+            ...prev,
+            candidate: {
+                ...updatedCandidate
+            },
+        }));
+
+        showSnackbar('Profile picture updated successfully!', 'success');
+    } catch (error) {
+        console.error('Failed to upload profile pic:', error);
+        showSnackbar('Failed to upload profile picture. Please try again.', 'error');
+    } finally {
+        setIsUploadDialogOpen(false);
+    }
+};
+
+
 
 
     // ✅ Handle stage update
@@ -50,9 +96,9 @@ export default function CandidateProfile() {
     };
 
 
-    const handleBack = () => {
-        navigate('/dashboard/candidates');
-    };
+    // const handleBack = () => {
+    //     navigate('/dashboard/candidates');
+    // };
 
     useEffect(() => {
         const fetchCandidate = async () => {
@@ -167,12 +213,12 @@ export default function CandidateProfile() {
     return (
         <div className="min-h-screen flex flex-col bg-[#f6f6f6]">
             <div className={`w-full px-4 mx-auto py-8 ${activeForm !== 'none' ? 'max-w-7xl' : 'max-w-6xl'} flex-grow flex flex-col space-y-6`}>
-                <div className="flex items-center gap-1 text-sm text-gray-600">
+                {/* <div className="flex items-center gap-1 text-sm text-gray-600">
                     <button onClick={handleBack} className="flex items-center gap-1 focus:outline-none">
                         <ArrowLeft className="w-4 h-4" />
                         Back to candidates
                     </button>
-                </div>
+                </div> */}
 
                 <div className="flex flex-col md:flex-row gap-6">
                     {/* Left side: Profile content */}
@@ -187,7 +233,7 @@ export default function CandidateProfile() {
                             onDisqualify={handleDisqualification}
                         />
 
-                        <CandidateProfileCard candidateData={candidateData} isLoading={isLoading} />
+                        <CandidateProfileCard candidateData={candidateData} isLoading={isLoading} onProfileUpload={handleProfileUploadClick} />
                         <CandidateTabs
                             activeTab={activeTab}
                             setActiveTab={setActiveTab}
@@ -226,6 +272,14 @@ export default function CandidateProfile() {
                     </div>
                 </div>
             </div>
+            <FileUploadDialog
+                open={isUploadDialogOpen}
+                onClose={() => setIsUploadDialogOpen(false)}
+                onSubmit={handleProfileFileSubmit}
+                title="Upload Profile Picture"
+                accept=".jpeg,.jpg,.png"
+                maxSizeMB={2}
+            />
         </div>
     );
 

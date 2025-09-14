@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import moment from "moment";
 import ProfileImage from "../ProfileImage";
+import { useRoleEnabled } from '../../../hooks/useRoleEnabled'; // Import hook
+import { getAvatarUrl } from "../../../utils/avatarUtils.js";
 
 const CommentTab = ({ applicationId }) => {
   const [comments, setComments] = useState([]);
@@ -10,6 +12,7 @@ const CommentTab = ({ applicationId }) => {
   const [visibleCount, setVisibleCount] = useState(3);
 
   const token = localStorage.getItem("access_token");
+  const isEnabled = useRoleEnabled(5); // Enable only if role === 5
 
   const fetchComments = async () => {
     try {
@@ -32,7 +35,7 @@ const CommentTab = ({ applicationId }) => {
   };
 
   const handlePost = async () => {
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !isEnabled) return;
     try {
       setLoading(true);
       const res = await axios.post(
@@ -51,7 +54,7 @@ const CommentTab = ({ applicationId }) => {
 
       if (res.data.status) {
         setNewComment("");
-        fetchComments(); // Refresh comments
+        fetchComments();
         setVisibleCount((prev) => prev + 1);
       }
     } catch (error) {
@@ -64,7 +67,7 @@ const CommentTab = ({ applicationId }) => {
   useEffect(() => {
     if (applicationId) {
       fetchComments();
-      setVisibleCount(3); // Reset visible count when ID changes
+      setVisibleCount(3);
     }
   }, [applicationId]);
 
@@ -81,12 +84,10 @@ const CommentTab = ({ applicationId }) => {
 
       {/* Input box */}
       <div className="flex items-start gap-2 mb-6">
-        <ProfileImage
-          src={"https://randomuser.me/api/portraits/men/10.jpg"}
+        <img
+          src={getAvatarUrl("Current", "User", "")}
           alt="User"
-          height={10}
-          width={10}
-          iconSize={28}
+          className="rounded-full h-10 w-10 object-cover"
         />
         <div className="flex-1 text-sm">
           <textarea
@@ -95,12 +96,17 @@ const CommentTab = ({ applicationId }) => {
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             className="w-full p-2 border rounded-md resize-none"
+            disabled={!isEnabled}
           />
           <div className="text-right mt-1">
             <button
               onClick={handlePost}
-              disabled={loading}
-              className="bg-teal-700 text-white px-4 py-[6px] rounded text-sm"
+              disabled={loading || !isEnabled}
+              className={`px-4 py-[6px] rounded text-sm ${
+                isEnabled
+                  ? "bg-teal-700 text-white hover:bg-teal-800"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
             >
               {loading ? "Posting..." : "Add a comment"}
             </button>

@@ -60,7 +60,7 @@ const Jobs = () => {
 
 
   useEffect(() => {
-    changeTitle("Jobs");
+    // changeTitle("Jobs");
     fetchJobList();
   }, []);
 

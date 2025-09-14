@@ -1,144 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Welcome Email</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background-color: #000;
-      margin: 0;
-      padding: 0;
-    }
-    .email-container {
-      background-color: #ffffff;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    .header {
-      background-color: #000000;
-      text-align: center;
-      padding: 20px 0;
-    }
-    .header img {
-      max-height: 45px;
-    }
-    .content {
-      padding: 40px 30px 20px;
-      text-align: center;
-    }
-    .content img.main-icon {
-      width: 100px;
-      margin-bottom: 20px;
-    }
-    .content h2 {
-      font-size: 20px;
-      margin: 0;
-      color: #000;
-    }
-    .content .welcome-text {
-      font-size: 15px;
-      margin-top: 6px;
-      color: #444;
-    }
-    .divider {
-      border-bottom: 2px solid #0f766e;
-      width: 100%;
-      margin: 20px 0 30px;
-    }
-    .content p {
-      font-size: 14px;
-      color: #333;
-      text-align: left;
-      margin: 10px 0;
-    }
-    .credentials {
-      background-color: #047857;
-      color: #ffffff;
-      border-radius: 10px;
-      padding: 15px;
-      font-size: 14px;
-      margin: 20px 0;
-      text-align: left;
-      line-height: 1.7;
-    }
-    .credentials a {
-      color: #fff;
-      text-decoration: underline;
-    }
-    .footer {
-      background-color: #000000;
-      color: #ffffff;
-      text-align: center;
-      padding: 30px 10px 20px;
-      font-size: 12px;
-    }
-    .social-icons {
-      margin-bottom: 15px;
-    }
-    .social-icons img {
-      width: 24px;
-      margin: 0 6px;
-      vertical-align: middle;
-      filter: brightness(0) invert(1);
-    }
-    .unsubscribe {
-      color: #00e0c7;
-      text-decoration: none;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Welcome to Hustoro</title>
+<style>
+  body {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    background-color: #f9fafb;
+    margin: 0;
+    padding: 30px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .email-container {
+    max-width: 640px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 28px rgba(15,23,42,0.08);
+  }
+
+  /* CONTENT */
+  .content {
+    padding: 50px 40px;
+    text-align: center;
+  }
+  .content .logo {
+    height: 70px;
+    width: 230px;
+    margin-bottom: 28px;
+  }
+  .content h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+  .welcome-text {
+    font-size: 15px;
+    margin-top: 12px;
+    color: #475569;
+  }
+  .divider {
+    height: 3px;
+    width: 64px;
+    background: #0d9488;
+    margin: 32px auto 40px;
+    border-radius: 2px;
+  }
+
+  /* CREDENTIALS CARD */
+  .credentials {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 28px;
+    text-align: left;
+    font-size: 15px;
+  }
+  .credentials-row {
+    display: flex;
+    align-items: center;
+    margin: 14px 0;
+  }
+  .credentials-row svg {
+    width: 22px;
+    height: 22px;
+    margin-right: 12px;
+    flex-shrink: 0;
+    stroke: #0d9488;
+  }
+  .credentials-row strong {
+    color: #0d9488;
+    margin-right: 4px;
+  }
+
+  /* BUTTON */
+  .login-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #0d9488, #14b8a6);
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 14px 34px;
+    border-radius: 12px;
+    text-decoration: none;
+    margin-top: 30px;
+    box-shadow: 0 6px 18px rgba(13,148,136,0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(13,148,136,0.45);
+  }
+
+  /* FOOTER */
+  .footer {
+    background: #f8fafc;
+    color: #64748b;
+    text-align: center;
+    padding: 26px 20px;
+    font-size: 12px;
+    border-top: 1px solid #e2e8f0;
+  }
+  .social-icons {
+    margin-bottom: 12px;
+  }
+  .social-icons img {
+    width: 22px;
+    margin: 0 8px;
+    vertical-align: middle;
+    opacity: 0.75;
+  }
+  .social-icons img:hover {
+    opacity: 1;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 480px) {
+    body { padding: 15px; }
+    .content { padding: 30px 20px; }
+    .content h2 { font-size: 22px; }
+    .credentials { padding: 20px; }
+    .login-btn { width: 100%; text-align: center; }
+  }
+</style>
 </head>
 <body>
   <div class="email-container">
-    <!-- Header -->
-    <div class="header">
-      <img src="https://res.cloudinary.com/dwi5dlj62/image/upload/v1747243088/logo-bxL4WHcf_utrjxi.png" alt="Bipani Logo" />
-    </div>
 
-    <!-- Main Content -->
+    <!-- Content -->
     <div class="content">
-      <img class="main-icon" src="https://cdn-icons-png.flaticon.com/512/10373/10373129.png" alt="Envelope Icon" />
-      <h2>Dear [Employee Name],</h2>
+      <img class="logo" src="https://res.cloudinary.com/dwi5dlj62/image/upload/v1756741893/hustoro_logo_blue_uk0utq.png" alt="Hustoro Logo" />
+
+      <h2>Welcome to Hustoro, Acme Corp!</h2>
       <div class="welcome-text">
-        Welcome to the team! We’re excited to have you on board at Bipani.
+        We're thrilled to have your company on board 🚀
       </div>
       <div class="divider"></div>
 
-      <p>Your employee account has been successfully created. Below are your login credentials and a link to get started:</p>
+      <p style="text-align:left; color:#374151;">
+        Your company profile has been successfully created. Below are your login credentials:
+      </p>
 
       <div class="credentials">
-        🌐 <strong>Website:</strong> <a href="https://bipani.co/login">https://bipani.co/login</a><br/>
-        📧 <strong>Email ID:</strong> [employee.email@example.com]<br/>
-        🔑 <strong>Temporary Password:</strong> [YourTempPassword123]
+        <div class="credentials-row">
+          <!-- Company -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke-width="2" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 21h18V7H3v14Zm0 0v-4h18v4M9 21v-8m6 8v-8"/></svg>
+          <span><strong>Company Name:</strong> Acme Corp</span>
+        </div>
+        <div class="credentials-row">
+          <!-- Email -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke-width="2" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4h16v16H4V4Zm0 0l8 7 8-7"/></svg>
+          <span><strong>Email:</strong> admin@acmecorp.com</span>
+        </div>
+        <div class="credentials-row">
+          <!-- Password -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke-width="2" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          <span><strong>Password:</strong> Welcome123!</span>
+        </div>
+        <div class="credentials-row">
+          <!-- Role -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke-width="2" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a6 6 0 0112 0v2"/></svg>
+          <span><strong>Role:</strong> Admin</span>
+        </div>
       </div>
 
-      <p>Please log in using the above credentials and follow the prompts to set your own password. We recommend changing your password as soon as possible for security reasons.</p>
+      <a href="https://hustoro.com/login" class="login-btn">Login to Dashboard</a>
 
-      <p>If you have any questions or need assistance, feel free to reach out to the IT department at [IT support email or contact].</p>
+      <p style="text-align:left; color:#4b5563; margin-top: 24px;">
+        Please log in using the above button and change your password immediately for security.
+      </p>
 
-      <p>Welcome aboard once again!</p>
+      <p style="text-align:left; color:#4b5563;">
+        Need help? Contact us at 
+        <a href="mailto:support@hustoro.com" style="color:#0d9488;">support@hustoro.com</a>.
+      </p>
 
-      <p style="margin-top: 30px;">
-        Best regards,<br/>
-        [Your Name]<br/>
-        [Your Position]<br/>
-        [Company Name]<br/>
-        [Contact Information]
+      <p style="margin-top: 28px; text-align:left; color:#111827;">
+        Warm regards,<br/>
+        <strong>Team Hustoro</strong>
       </p>
     </div>
 
     <!-- Footer -->
     <div class="footer">
       <div class="social-icons">
-        <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111392.png" alt="Facebook" /></a>
-        <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram" /></a>
-        <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" /></a>
-        <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" alt="Twitter" /></a>
+        <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn"/></a>
+        <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" alt="Twitter"/></a>
       </div>
-      <p>©2025 copyright 2025 www.bipani.com. All Rights Reserved.</p>
-      <a href="#" class="unsubscribe">Unsubscribe</a>
+      <p>©2025 Hustoro. All Rights Reserved.</p>
     </div>
+
   </div>
 </body>
 </html>

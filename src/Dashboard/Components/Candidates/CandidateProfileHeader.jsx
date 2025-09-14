@@ -11,6 +11,7 @@ import { Tooltip } from 'react-tooltip';
 import { MoreHoriz } from '@mui/icons-material';
 import DisqualifyDropdown from './DisqualifyDropdown';
 import StagesDropdown from './StagesDropdown';
+import { useRoleEnabled } from '../../../hooks/useRoleEnabled'; // Import the hook
 
 export default function CandidateProfileHeader({
   stage,
@@ -27,6 +28,8 @@ export default function CandidateProfileHeader({
   const [dropUp, setDropUp] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
+
+  const isEnabled = useRoleEnabled(5); // Use hook here
 
   // Close menu when clicked outside
   useEffect(() => {
@@ -48,60 +51,21 @@ export default function CandidateProfileHeader({
     if (menuOpen && buttonRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
-      setDropUp(buttonRect.bottom + 100 > viewportHeight); // flip if too close to bottom
+      setDropUp(buttonRect.bottom + 100 > viewportHeight);
     }
   }, [menuOpen]);
 
   return (
     <div className="flex justify-end items-center bg-white px-4 py-2 rounded-xl shadow-sm flex-wrap gap-4">
       <div className="flex space-x-4 items-center relative">
-        {/* More menu
-        <div className="relative">
-          <button
-            ref={buttonRef}
-            className="p-2 rounded-md hover:bg-gray-100"
-            onClick={() => setMenuOpen(!menuOpen)}
-            data-tooltip-id="tooltip"
-            data-tooltip-content="More"
-          >
-            <MoreHoriz fontSize="small" className="text-gray-600" />
-          </button>
-
-          {menuOpen && (
-            <div
-              ref={menuRef}
-              className={`absolute left-0 ${
-                dropUp ? 'bottom-10' : 'top-12'
-              } w-56 py-4 bg-white border border-gray-200 shadow-lg rounded-md z-50`}
-            >
-              <button
-                onClick={() => {
-                  setMenuOpen(false);
-                  onEditCandidate?.();
-                }}
-                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                <Edit size={16} /> Edit Candidate
-              </button>
-              <button
-                onClick={() => {
-                  setMenuOpen(false);
-                  onDeleteCandidate?.();
-                }}
-                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                <Trash2 size={16} /> Delete Candidate
-              </button>
-            </div>
-          )}
-        </div> */}
 
         {/* Schedule interview */}
         <button
           data-tooltip-id="tooltip"
           data-tooltip-content="Schedule interview"
-          className="p-2 rounded-md hover:bg-gray-100"
-          onClick={onScheduleInterviewClick}
+          className={`p-2 rounded-md hover:bg-gray-100 ${!isEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          onClick={isEnabled ? onScheduleInterviewClick : undefined}
+          disabled={!isEnabled}
         >
           <Calendar size={20} className="text-gray-600" />
         </button>
@@ -110,8 +74,9 @@ export default function CandidateProfileHeader({
         <button
           data-tooltip-id="tooltip"
           data-tooltip-content="Send Email"
-          className="p-2 rounded-md hover:bg-gray-100"
-          onClick={onSendEmailClick}
+          className={`p-2 rounded-md hover:bg-gray-100 ${!isEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          onClick={isEnabled ? onSendEmailClick : undefined}
+          disabled={!isEnabled}
         >
           <Mail size={20} className="text-gray-600" />
         </button>
@@ -120,8 +85,9 @@ export default function CandidateProfileHeader({
         <button
           data-tooltip-id="tooltip"
           data-tooltip-content="Add evaluation"
-          className="p-2 rounded-md hover:bg-gray-100"
-          onClick={onAddEvaluationClick}
+          className={`p-2 rounded-md hover:bg-gray-100 ${!isEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          onClick={isEnabled ? onAddEvaluationClick : undefined}
+          disabled={!isEnabled}
         >
           <ClipboardList size={20} className="text-gray-600" />
         </button>
@@ -130,20 +96,22 @@ export default function CandidateProfileHeader({
         <button
           data-tooltip-id="tooltip"
           data-tooltip-content="Send text message"
-          className="p-2 rounded-md hover:bg-gray-100"
-          onClick={onSendTextClick}
+          className={`p-2 rounded-md hover:bg-gray-100 ${!isEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          onClick={isEnabled ? onSendTextClick : undefined}
+          disabled={!isEnabled}
         >
           <MessageSquareText size={20} className="text-gray-600" />
         </button>
 
         {/* Disqualify dropdown */}
-        <DisqualifyDropdown onSelectReason={onDisqualify} />
+        <DisqualifyDropdown onSelectReason={isEnabled ? onDisqualify : undefined} disabled={!isEnabled} />
 
         {/* Stages dropdown */}
         <StagesDropdown
           currentStage={stage}
-          stages={[1, 2, 3, 4, 5, 6]}
-          onSelect={onUpdateStage}
+          stages={[1, 2, 3, 4, 5, 6, 7]}
+          onSelect={isEnabled ? onUpdateStage : undefined}
+          disabled={!isEnabled}
         />
 
         {/* Tooltip */}

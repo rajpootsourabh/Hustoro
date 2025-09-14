@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import signup_bg from '../../assets/signup-bg.png'
 import white_tick from '../../assets/white-tick.png'
-// import icon from '../../assets/Icon.png'
-import icon from '../../assets/logo.png'
+import logo from '../../assets/logo_white.png'
 import TextField from '@mui/material/TextField';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -62,7 +61,7 @@ const Login = () => {
   const postLogin = async (values) => {
     localStorage.removeItem('isManager');
     try {
-      setLoading(true)
+      setLoading(true);
       const payload = {
         email: values.email,
         password: values.password,
@@ -73,7 +72,7 @@ const Login = () => {
           'Content-Type': 'application/json',
         },
       });
-      console.log("response ", response)
+
       if (response.status === 200) {
         const { access_token, user, employee_id, is_manager } = response.data;
 
@@ -82,13 +81,20 @@ const Login = () => {
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('employeeId', JSON.stringify(employee_id));
 
-        // ✅ Only set if key exists
         if (typeof is_manager !== 'undefined') {
           localStorage.setItem('isManager', JSON.stringify(is_manager));
         }
+
         setLoading(false);
         setSuccess(true);
-        navigate("/dashboard");
+
+        // ✅ Redirect based on role
+        if (user.role === 5) {
+          navigate("/dashboard"); // for employee
+        } else {
+          navigate("/dashboard/jobs"); // for admin, HR, recruiter etc.
+        }
+
       } else {
         setLoading(false);
         setSuccess(false);
@@ -100,14 +106,13 @@ const Login = () => {
         error?.response?.data?.error ||
         "Something went wrong",
         "error"
-      )
+      );
 
-      setLoading(false)
-      setSuccess(false)
-    } finally {
-      console.log("finally run")
+      setLoading(false);
+      setSuccess(false);
     }
-  }
+  };
+
 
 
 
@@ -140,7 +145,7 @@ const Login = () => {
         <div className='max-w-[1700px] grid [@media(min-width:1000px)]:grid-cols-2 grid-cols-1 gap-5 items-center text-white'>
           <div className='xl:pl-40 md:pl-10 flex-col gap-6 [@media(min-width:1000px)]:flex hidden'>
             {/* <img src={icon} className='w-16 h-16' /> */}
-            <img src={icon} className='w-fit h-16' />
+            <img src={logo} alt="Logo" className="h-16 w-fit" />
             <p className='text-3xl font-semibold'>Big ideas. Amazing talent.The recruiting software that brings them together.</p>
             <div className='flex flex-col gap-4'>
               {

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { MessageSquare, Phone, FileText, Edit2, Trash2, UserSearch, UserPen, Smile, BadgeCheck, Users } from "lucide-react";
 import moment from "moment";
+import { getAvatarUrl } from "../../../utils/avatarUtils.js"; 
+
 
 const iconMap = {
   1: <UserSearch size={20} />,
@@ -55,10 +57,15 @@ const TimelineTab = ({ applicationId }) => {
               {iconMap?.[Number(log.to_stage)] || <MessageSquare size={20} />}
             </div>
             <img
-              src={`https://i.pravatar.cc/40?img=${(index % 70) + 1}`}
-              alt="Profile"
+              src={getAvatarUrl(
+                log.changed_by?.split(" ")[0] || "User", 
+                log.changed_by?.split(" ")[1] || "",    
+                log.changed_by_profile_image          
+              )}
+              alt={log.changed_by || "User"}
               className="h-10 w-10 rounded-full object-cover"
             />
+
             <div className="flex-1 overflow-hidden">
               <div className="text-sm font-medium text-gray-800 truncate">
                 Moved to {log.to_stage_label} stage by {log.changed_by}
@@ -66,11 +73,6 @@ const TimelineTab = ({ applicationId }) => {
               <div className="text-xs text-gray-500">
                 {log?.updated_at ? moment(log?.updated_at).fromNow() : "N/A"}
               </div>
-            </div>
-
-            <div className="flex items-center gap-2 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button><Edit2 size={16} /></button>
-              <button><Trash2 size={16} /></button>
             </div>
           </div>
         ))
