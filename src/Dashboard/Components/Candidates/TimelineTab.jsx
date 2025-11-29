@@ -4,15 +4,33 @@ import { MessageSquare, Phone, FileText, Edit2, Trash2, UserSearch, UserPen, Smi
 import moment from "moment";
 import { getAvatarUrl } from "../../../utils/avatarUtils.js"; 
 
-
-const iconMap = {
-  1: <UserSearch size={20} />,
-  2: <UserPen size={20} />,
-  3: <Phone size={20} />,
-  4: <FileText size={20} />,
-  5: <Users size={20} />,
-  6: <BadgeCheck size={20} />,
-  7: <Smile size={20} />,
+// Updated icon mapping for dynamic stages (fallback icons)
+const getStageIcon = (stageType, stageName) => {
+  const lowerStageName = stageName?.toLowerCase() || '';
+  
+  if (lowerStageName.includes('phone') || lowerStageName.includes('screen')) {
+    return <Phone size={20} />;
+  }
+  if (lowerStageName.includes('interview')) {
+    return <Users size={20} />;
+  }
+  if (lowerStageName.includes('assessment') || lowerStageName.includes('test')) {
+    return <FileText size={20} />;
+  }
+  if (lowerStageName.includes('offer')) {
+    return <BadgeCheck size={20} />;
+  }
+  if (lowerStageName.includes('hire') || lowerStageName.includes('onboard')) {
+    return <Smile size={20} />;
+  }
+  if (stageType === 'hiring') {
+    return <UserSearch size={20} />;
+  }
+  if (stageType === 'onboarding') {
+    return <UserPen size={20} />;
+  }
+  
+  return <MessageSquare size={20} />;
 };
 
 const TimelineTab = ({ applicationId }) => {
@@ -24,19 +42,19 @@ const TimelineTab = ({ applicationId }) => {
     const fetchLogs = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/job-applications/${applicationId}/logs`,
+          `${import.meta.env.VITE_API_BASE_URL}/job-applications/${applicationId}/stage-history`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,
             },
           }
         );
-        const sortedLogs = (response.data.data.reverse() || []).sort(
-          (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
+        const sortedLogs = (response.data.data || []).sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at)
         );
         setLogs(sortedLogs);
       } catch (error) {
-        console.error("Failed to fetch logs:", error);
+        console.error("Failed to fetch stage history:", error);
       }
     };
 
@@ -46,7 +64,7 @@ const TimelineTab = ({ applicationId }) => {
   return (
     <div className="divide-y divide-gray-200 bg-white">
       {logs.length === 0 ? (
-        <p className="p-4 text-sm text-gray-500">No timeline activity yet.</p>
+        <p className="p-4 text-sm text-gray-500">No stage history yet.</p>
       ) : (
         logs.map((log, index) => (
           <div
@@ -54,7 +72,7 @@ const TimelineTab = ({ applicationId }) => {
             className="group flex items-center gap-4 px-4 py-4 min-h-[80px]"
           >
             <div className="text-gray-500">
-              {iconMap?.[Number(log.to_stage)] || <MessageSquare size={20} />}
+              {getStageIcon(log.to_stage?.type, log.to_stage_label)}
             </div>
             <img
               src={getAvatarUrl(
@@ -68,10 +86,24 @@ const TimelineTab = ({ applicationId }) => {
 
             <div className="flex-1 overflow-hidden">
               <div className="text-sm font-medium text-gray-800 truncate">
-                Moved to {log.to_stage_label} stage by {log.changed_by}
+                {log.from_stage_label ? 
+                  `Moved from ${log.from_stage_label} to ${log.to_stage_label}` :
+                  `Moved to ${log.to_stage_label} stage`
+                } by {log.changed_by}
               </div>
+              {log.note && (
+                <div className="text-sm text-gray-600 mt-1">
+                  Note: {log.note}
+                </div>
+              )}
+              {log.is_hire_action && (
+                <div className="text-xs text-green-600 font-medium mt-1">
+                  ✓ Employee record created
+                </div>
+              )}
               <div className="text-xs text-gray-500">
-                {log?.updated_at ? moment(log?.updated_at).fromNow() : "N/A"}
+                {log?.changed_at ? moment(log?.changed_at).fromNow() : 
+                 log?.created_at ? moment(log?.created_at).fromNow() : "N/A"}
               </div>
             </div>
           </div>

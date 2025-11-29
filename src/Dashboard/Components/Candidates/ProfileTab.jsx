@@ -153,15 +153,13 @@ const ProfileTab = ({ candidateData, isEditMode, onRefresh }) => {
       {renderEditableField("Email", "email")}
 
       {/* Resume Viewer */}
-      {data?.candidate?.resume && (
-        <ResumeViewer
+      <ResumeViewer
           fileUrl={data.candidate.resume}
           uploading={uploading}
           onOpenUploadDialog={() =>
             handleOpenUploadDialog("Upload Resume", ".pdf")
           }
         />
-      )}
 
       {/* Edit Profile Dialog */}
       <EditProfileDialog
@@ -186,7 +184,7 @@ const ProfileTab = ({ candidateData, isEditMode, onRefresh }) => {
         onSubmit={handleFileUpload}
         title={uploadTitle}
         accept={uploadAccept}
-        maxSizeMB={2}
+        maxSizeMB={5}
       />
     </div>
   );

@@ -12,15 +12,16 @@ import SubmitReviewForm from '../../Components/Candidates/SubmitReviewForm';
 import { useSnackbar } from "../../../Dashboard/Components/SnackbarContext";
 import JobOverviewCard from '../../Components/Candidates/JobOverviewCard';
 import FileUploadDialog from '../../Components/FileUploadDialog';
-
+import DocumentLinksForm from '../../Components/Candidates/DocumentLinksForm';
 
 export default function CandidateProfile() {
     const [activeTab, setActiveTab] = useState('Profile');
     const { id } = useParams();
     const [candidateData, setCandidateData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    // const navigate = useNavigate();
-    const [stage, setStage] = useState('');
+    const [stageId, setStageId] = useState(null);
+    const [availableStages, setAvailableStages] = useState([]);
+    const [isLoadingStages, setIsLoadingStages] = useState(true); // Add loading state for stages
     const [activeForm, setActiveForm] = useState('none');
     const [isSubmittingReview, setIsSubmittingReview] = useState(false);
     const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -28,112 +29,196 @@ export default function CandidateProfile() {
     const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
     const handleProfileUploadClick = () => setIsUploadDialogOpen(true);
 
-    // Handle profile pic update
-const handleProfileFileSubmit = async (file) => {
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('profile_pic', file); // your endpoint expects 'file'
-
-    try {
-        const response = await axios.post(
-            `${import.meta.env.VITE_API_BASE_URL}/job-applications/${id}/files`,
-            formData,
-            {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-                    'Content-Type': 'multipart/form-data',
-                },
-            }
-        );
-
-        const updatedCandidate = response.data.candidate;
-
-        // Add cache-busting query param to profile_pic
-        updatedCandidate.profile_pic = updatedCandidate.profile_pic + `?t=${Date.now()}`;
-
-        // Update state with new candidate object
-        setCandidateData((prev) => ({
-            ...prev,
-            candidate: {
-                ...updatedCandidate
-            },
-        }));
-
-        showSnackbar('Profile picture updated successfully!', 'success');
-    } catch (error) {
-        console.error('Failed to upload profile pic:', error);
-        showSnackbar('Failed to upload profile picture. Please try again.', 'error');
-    } finally {
-        setIsUploadDialogOpen(false);
-    }
-};
-
-
-
-
-    // ✅ Handle stage update
-    const updateStage = (nextStage) => {
-        setStage(nextStage); // Optimistically update UI
-
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/job-applications/${id}/set-stage`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem("access_token")}`
-            },
-            body: JSON.stringify({ stage_id: nextStage }),
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                showSnackbar("Candidate moved to the next stage successfully.", "success");
-                console.log('Stage updated:', data);
-            })
-            .catch((err) => {
-                console.error('Failed to update stage:', err);
-                showSnackbar("Failed to move candidate to the next stage. Please try again.", "error");
-            });
+    // Fetch available stages for this application
+    const fetchAvailableStages = async (applicationId) => {
+        setIsLoadingStages(true); // Set loading to true when starting fetch
+        try {
+            const response = await axios.get(
+                `${import.meta.env.VITE_API_BASE_URL}/job-applications/${applicationId}/available-stages`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+                    },
+                }
+            );
+            setAvailableStages(response.data.data || []);
+        } catch (error) {
+            console.error('Failed to fetch available stages:', error);
+            setAvailableStages([]);
+        } finally {
+            setIsLoadingStages(false); // Set loading to false when done
+        }
     };
 
+    // Handle profile pic update
+    const handleProfileFileSubmit = async (file) => {
+        if (!file) return;
 
-    // const handleBack = () => {
-    //     navigate('/dashboard/candidates');
-    // };
+        const formData = new FormData();
+        formData.append('profile_pic', file);
+
+        try {
+            const response = await axios.post(
+                `${import.meta.env.VITE_API_BASE_URL}/job-applications/${id}/files`,
+                formData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+
+            const updatedCandidate = response.data.candidate;
+            updatedCandidate.profile_pic = updatedCandidate.profile_pic + `?t=${Date.now()}`;
+
+            setCandidateData((prev) => ({
+                ...prev,
+                candidate: {
+                    ...updatedCandidate
+                },
+            }));
+
+            showSnackbar('Profile picture updated successfully!', 'success');
+        } catch (error) {
+            console.error('Failed to upload profile pic:', error);
+            showSnackbar('Failed to upload profile picture. Please try again.', 'error');
+        } finally {
+            setIsUploadDialogOpen(false);
+        }
+    };
+
+    // ✅ Updated stage update for dynamic stages
+    const updateStage = async (newStageId) => {
+        try {
+            const response = await axios.post(
+                `${import.meta.env.VITE_API_BASE_URL}/job-applications/${id}/set-stage`,
+                { stage_id: newStageId },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+                    },
+                }
+            );
+
+            // Update local state
+            setStageId(newStageId);
+
+            // Refresh candidate data to get updated stage information
+            fetchCandidate();
+
+            showSnackbar("Candidate moved to new stage successfully.", "success");
+            console.log('Stage updated:', response.data);
+        } catch (error) {
+            console.error('Failed to update stage:', error);
+            showSnackbar("Failed to move candidate to new stage. Please try again.", "error");
+            throw error; // Re-throw to let StagesDropdown handle loading state
+        }
+    };
+
+    const fetchCandidate = async () => {
+        setIsLoading(true);
+        try {
+            const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/job-applications/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("access_token")}`
+                }
+            });
+            const candidate = response.data.data;
+            setCandidateData(candidate);
+
+            // Set the current stage ID (company_stage_id)
+            setStageId(candidate.company_stage_id || candidate.current_stage?.id);
+
+            console.log("Fetched candidate data:", candidate);
+        } catch (error) {
+            console.error("Error fetching candidate:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchCandidate = async () => {
-            setIsLoading(true);
-            try {
-                const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/job-applications/${id}`, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("access_token")}`
-                    }
-                });
-                const candidate = response.data.data;
-                setCandidateData(candidate);
-                setStage(candidate.current_stage);
-                console.log("Fetched candidate data:", candidate);
-            } catch (error) {
-                console.error("Error fetching candidate:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        if (id) fetchCandidate();
+        if (id) {
+            fetchCandidate();
+            fetchAvailableStages(id);
+        }
     }, [id]);
 
-
     const handleSendEmailClick = () => setActiveForm('email');
+    const handleGenerateLinkClick = () => setActiveForm('link');
     const handleSendTextClick = () => setActiveForm('text');
     const handleAddEvaluationClick = () => setActiveForm("review");
-    const handleScheduleInterviewClick = () => alert("Schedule interview clicked");
+
+    // ✅ Schedule interview method
+    const handleScheduleInterviewClick = async (interviewData) => {
+        try {
+            console.log('Scheduling Jitsi interview:', interviewData);
+            showSnackbar("Scheduling interview...", "info");
+
+            const userDataString = localStorage.getItem('user');
+            if (!userDataString) {
+                throw new Error('User data not found. Please login again.');
+            }
+
+            const userData = JSON.parse(userDataString);
+            const currentEmployeeId = userData.id;
+
+            if (!currentEmployeeId) {
+                throw new Error('Employee ID not found in user data.');
+            }
+
+            const payload = {
+                employee_id: currentEmployeeId,
+                candidate_id: candidateData?.candidate?.id,
+                candidate_email: candidateData?.candidate?.email,
+                scheduled_at: interviewData.scheduledAt
+            };
+
+            console.log('Sending payload:', payload);
+
+            const response = await axios.post(
+                `${import.meta.env.VITE_API_BASE_URL}/meetings/schedule`,
+                payload,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            if (response.data.message === 'Meeting scheduled successfully') {
+                showSnackbar("Interview scheduled successfully! Meeting details have been sent to the candidate.", "success");
+                console.log('Jitsi meeting created successfully');
+            } else {
+                throw new Error(response.data.error || 'Failed to create meeting');
+            }
+
+        } catch (error) {
+            console.error('Failed to schedule interview:', error);
+            if (error.response?.status === 422) {
+                const errors = error.response.data.errors;
+                const errorMessage = Object.values(errors).flat().join(', ');
+                showSnackbar(`Validation error: ${errorMessage}`, "error");
+            } else if (error.response?.status === 401) {
+                showSnackbar("Authentication failed. Please login again.", "error");
+            } else if (error.message.includes('User data not found') || error.message.includes('Employee ID not found')) {
+                showSnackbar(error.message, "error");
+            } else if (error.code === 'NETWORK_ERROR') {
+                showSnackbar("Network error. Please check your connection.", "error");
+            } else {
+                showSnackbar("Failed to schedule interview. Please try again.", "error");
+            }
+            throw error;
+        }
+    };
 
     const handleCloseForm = () => setActiveForm('none');
 
     const handleReviewSubmit = async (payload) => {
         setIsSubmittingReview(true);
-
         try {
             const response = await axios.post(
                 `${import.meta.env.VITE_API_BASE_URL}/job-applications/${id}/reviews`,
@@ -147,19 +232,17 @@ const handleProfileFileSubmit = async (file) => {
             );
             showSnackbar("Review submitted successfully.", "success");
             console.log('Review successfully submitted:', response.data);
-            handleCloseForm(); // Close the form after successful submission
+            handleCloseForm();
         } catch (error) {
             console.error('Error submitting review:', error);
             showSnackbar("Failed to submit review. Please try again.", "error");
-
         } finally {
-            setIsSubmittingReview(false); // Stop loading
+            setIsSubmittingReview(false);
         }
     };
 
     const handleEmailSend = async (formData) => {
         setIsSendingEmail(true);
-
         const fullPayload = {
             ...formData,
             candidateApplicationId: id,
@@ -179,12 +262,12 @@ const handleProfileFileSubmit = async (file) => {
             );
             showSnackbar("Email sent successfully to the candidate.", "success");
             console.log('Email successfully sent:', response.data);
-            handleCloseForm(); // Close the form on success
+            handleCloseForm();
         } catch (error) {
             console.error('Failed to send email:', error);
             showSnackbar("Failed to send email. Please try again.", "error");
         } finally {
-            setIsSendingEmail(false); // stop loading
+            setIsSendingEmail(false);
         }
     };
 
@@ -202,35 +285,31 @@ const handleProfileFileSubmit = async (file) => {
             );
             showSnackbar("Candidate has been disqualified successfully.", "success");
             console.log('Candidate disqualified:', response.data);
-            // Optional: refresh candidate data or update UI state
         } catch (error) {
             console.error('Failed to disqualify candidate:', error);
             showSnackbar("Failed to disqualify candidate. Please try again.", "error");
         }
     };
 
-
     return (
         <div className="min-h-screen flex flex-col bg-[#f6f6f6]">
             <div className={`w-full px-4 mx-auto py-8 ${activeForm !== 'none' ? 'max-w-7xl' : 'max-w-6xl'} flex-grow flex flex-col space-y-6`}>
-                {/* <div className="flex items-center gap-1 text-sm text-gray-600">
-                    <button onClick={handleBack} className="flex items-center gap-1 focus:outline-none">
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to candidates
-                    </button>
-                </div> */}
-
                 <div className="flex flex-col md:flex-row gap-6">
                     {/* Left side: Profile content */}
                     <div className={`${activeForm !== 'none' ? 'md:w-[55%]' : 'md:w-[75%]'} w-full space-y-6`}>
                         <CandidateProfileHeader
-                            stage={stage}
+                            stageId={stageId}
+                            stages={availableStages}
                             onUpdateStage={updateStage}
                             onSendEmailClick={handleSendEmailClick}
                             onSendTextClick={handleSendTextClick}
                             onAddEvaluationClick={handleAddEvaluationClick}
                             onScheduleInterviewClick={handleScheduleInterviewClick}
                             onDisqualify={handleDisqualification}
+                            onGenerateLinkClick={handleGenerateLinkClick}
+                            candidate={candidateData?.candidate}
+                            applicationId={id}
+                            isLoadingStages={isLoadingStages} // Pass the loading state
                         />
 
                         <CandidateProfileCard candidateData={candidateData} isLoading={isLoading} onProfileUpload={handleProfileUploadClick} />
@@ -253,6 +332,14 @@ const handleProfileFileSubmit = async (file) => {
                                 onClose={handleCloseForm}
                                 onSend={handleEmailSend}
                                 isLoading={isSendingEmail}
+                            />
+                        )}
+
+                        {activeForm === 'link' && (
+                            <DocumentLinksForm
+                                candidateData={candidateData?.candidate || ''}
+                                applicationId={id} 
+                                onClose={handleCloseForm}
                             />
                         )}
 
@@ -282,6 +369,4 @@ const handleProfileFileSubmit = async (file) => {
             />
         </div>
     );
-
 }
-

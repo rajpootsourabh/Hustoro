@@ -22,8 +22,7 @@ const Jobs = () => {
   const [confirmDeleteLoading, setConfirmDeleteLoading] = useState(false);
   const [showAssignPopup, setShowAssignPopup] = useState(false);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
-
-
+  const [dynamicStages, setDynamicStages] = useState([]); // Store dynamic stages metadata
 
   const getJobsStats = async () => {
     try {
@@ -32,23 +31,42 @@ const Jobs = () => {
           Authorization: "Bearer " + localStorage.getItem("access_token"),
         },
       });
+
       if (response.status === 200 && response.data.status === 'success') {
-        const normalizedJobStats = response.data.data.map(stat => {
-          const stages = stat.stages || {};
-          return {
-            job_id: stat.job_id,
-            resource_count: stat.total || 0,
-            applied: stages["Applied"] || 0,
-            phone_screen: stages["Phone Screen"] || 0,
-            assessment: stages["Assessment"] || 0,
-            interview: stages["Interview"] || 0,
-            offer: stages["Offer"] || 0,
-            hired: stages["Hired"] || 0,
-            sourced: stages["Sourced"] || 0,
-            total_candidates: stat.total || 0,
+        // Store dynamic stages metadata
+        if (response.data.stages_metadata) {
+          setDynamicStages(response.data.stages_metadata);
+        }
+
+        // For company-wide stats (if using the new endpoint)
+        if (response.data.data && Array.isArray(response.data.data)) {
+          // Handle array response (multiple jobs)
+          const normalizedJobStats = response.data.data.map(stat => {
+            const stages = stat.stages || {};
+
+            // Create a normalized stats object with all dynamic stages
+            const normalizedStats = {
+              job_id: stat.job_id,
+              resource_count: stat.total || 0,
+              total_candidates: stat.total || 0,
+              // Include all dynamic stages
+              ...stages
+            };
+
+            return normalizedStats;
+          });
+          setJobStats(normalizedJobStats);
+        } else if (response.data.data && response.data.data.stages) {
+          // Handle single job stats object
+          const stages = response.data.data.stages || {};
+          const normalizedStats = {
+            job_id: response.data.data.job_id,
+            resource_count: response.data.data.total || 0,
+            total_candidates: response.data.data.total || 0,
+            ...stages
           };
-        });
-        setJobStats(normalizedJobStats);
+          setJobStats([normalizedStats]);
+        }
       } else {
         showSnackbar("Failed to fetch job stats", "error");
       }
@@ -58,12 +76,10 @@ const Jobs = () => {
     }
   };
 
-
   useEffect(() => {
     // changeTitle("Jobs");
     fetchJobList();
   }, []);
-
 
   const handleUploadClick = (job) => {
     setSelectedJob(job);
@@ -197,7 +213,6 @@ const Jobs = () => {
     }
   };
 
-
   const handleAssignJobClick = (employeeId) => {
     setSelectedEmployeeId(employeeId);
     setShowAssignPopup(true);
@@ -267,6 +282,7 @@ const Jobs = () => {
                         key={item.id}
                         job={item}
                         stats={stats}
+                        dynamicStages={dynamicStages}
                         onUploadClick={handleUploadClick}
                         onFindCandidateClick={handleFindCandidateClick}
                         onFindDeleteClick={handleDeleteClick}

@@ -3,7 +3,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
-const FileUploadDialog = ({ open, onClose, onSubmit, title, accept, maxSizeMB = 2 }) => {
+const FileUploadDialog = ({ open, onClose, onSubmit, title, accept, maxSizeMB = 5 }) => {
     const [selectedFile, setSelectedFile] = useState(null);
 
     const formik = useFormik({

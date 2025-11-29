@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Bell, Check } from 'lucide-react';
 import axios from 'axios';
-import echo from '../../utils/echo';
+// import echo from '../../utils/echo';
 import { getTimeAgo } from '../../utils/dateUtils';
 
 const NotificationModal = ({ token }) => {
@@ -65,38 +65,38 @@ const NotificationModal = ({ token }) => {
     fetchNotifications();
   }, [token]);
 
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    const userId = user?.id;
-    if (!userId) return;
+  // useEffect(() => {
+  //   const user = JSON.parse(localStorage.getItem('user'));
+  //   const userId = user?.id;
+  //   if (!userId) return;
 
-    const channel = echo.private(`App.Models.User.${userId}`);
+  //   const channel = echo.private(`App.Models.User.${userId}`);
 
-    const handleNewNotification = (e) => {
-      setNotifications((prev) => {
-        if (prev.some((n) => n.id === e.id)) return prev;
-        const updated = [
-          {
-            id: e.id,
-            title: e.title || 'Notification',
-            message: e.message || 'New notification',
-            created_at: e.created_at || new Date().toISOString(),
-            read_at: null,
-          },
-          ...prev,
-        ];
-        setUnreadCount(updated.filter((n) => n.read_at === null).length);
-        return updated;
-      });
-    };
+  //   const handleNewNotification = (e) => {
+  //     setNotifications((prev) => {
+  //       if (prev.some((n) => n.id === e.id)) return prev;
+  //       const updated = [
+  //         {
+  //           id: e.id,
+  //           title: e.title || 'Notification',
+  //           message: e.message || 'New notification',
+  //           created_at: e.created_at || new Date().toISOString(),
+  //           read_at: null,
+  //         },
+  //         ...prev,
+  //       ];
+  //       setUnreadCount(updated.filter((n) => n.read_at === null).length);
+  //       return updated;
+  //     });
+  //   };
 
-    channel.listen('.TimeOffRequested', handleNewNotification);
-    channel.listen('.TimeOffStatusChanged', handleNewNotification);
+  //   channel.listen('.TimeOffRequested', handleNewNotification);
+  //   channel.listen('.TimeOffStatusChanged', handleNewNotification);
 
-    return () => {
-      echo.leave(`private-App.Models.User.${userId}`);
-    };
-  }, []);
+  //   return () => {
+  //     echo.leave(`private-App.Models.User.${userId}`);
+  //   };
+  // }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {

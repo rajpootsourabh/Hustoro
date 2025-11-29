@@ -6,7 +6,7 @@ export default function ActionButton({
   labelClassName = "",
 }) {
   const hasBgColor = /\bbg-/.test(className);
-  const defaultBg = "bg-[#09655c] hover:bg-[#00756A]";
+  const defaultBg = "bg-teal-700 hover:bg-teal-800";
 
   return (
     <button

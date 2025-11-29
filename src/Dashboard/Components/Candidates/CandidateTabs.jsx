@@ -4,11 +4,12 @@ import ProfileTab from './ProfileTab';
 import CommunicationTab from './CommunicationTab';
 import ReviewTab from './ReviewTab';
 import CommentTab from './CommentTab';
+import FilledDocumentTab from './FilledDocumentTab';
 
 export default function CandidateTabs({ activeTab, setActiveTab, candidateData }) {
     const applicationId = candidateData?.id;
 
-    const tabs = ['Profile', 'Timeline', 'Communication', 'Review', 'Comments'];
+    const tabs = ['Profile', 'Timeline', 'Communication', 'Review', 'Comments', 'Filled Documents'];
 
     return (
         <div className="bg-white rounded-xl shadow-sm">
@@ -17,11 +18,10 @@ export default function CandidateTabs({ activeTab, setActiveTab, candidateData }
                 {tabs.map(tab => (
                     <button
                         key={tab}
-                        className={`px-4 py-4 text-sm font-medium ${
-                            activeTab === tab
+                        className={`px-4 py-4 text-sm font-medium ${activeTab === tab
                                 ? 'border-b-2 border-emerald-600 text-emerald-600'
                                 : 'text-gray-500'
-                        }`}
+                            }`}
                         onClick={() => setActiveTab(tab)}
                     >
                         {tab}
@@ -36,6 +36,7 @@ export default function CandidateTabs({ activeTab, setActiveTab, candidateData }
                 {activeTab === "Communication" && <CommunicationTab applicationId={applicationId} />}
                 {activeTab === "Review" && <ReviewTab applicationId={applicationId} />}
                 {activeTab === "Comments" && <CommentTab applicationId={applicationId} />}
+                {activeTab === "Filled Documents" && <FilledDocumentTab applicationId={applicationId} />}
             </div>
         </div>
     );

@@ -121,7 +121,7 @@
     font-style: normal;
   }
   
-    /* You can add this to your global CSS if needed */
+    /* You can add this to your global CSS if needed
 input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: 0;
   display: none;
@@ -129,7 +129,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 input[type="date"]::-moz-calendar-picker-indicator {
   opacity: 0;
   display: none;
-}
+} */
 
   
 /* <------- For PDF Preview -------> */

@@ -135,7 +135,7 @@ export default function UploadCandidateForm({ onClose, onSubmit, selectedJob, so
                         </button> */}
 
                         <ActionButton
-                            label="Add to Sourced"
+                            label="Add Candidate"
                             type="submit"
                             onClick={handleSubmit}
                             isLoading={loading}

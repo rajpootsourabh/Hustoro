@@ -71,9 +71,9 @@ const ReviewTab = ({ applicationId }) => {
                 />
 
                 <h2 className="text-md mt-2">{review.reviewer_name || "User"}</h2>
-                <p className="text-gray-500 text-xs">
+                {/* <p className="text-gray-500 text-xs">
                   {review.reviewer_address || "Unknown address"}, {review.reviewer_country || "Unknown country"}
-                </p>
+                </p> */}
 
                 <div className="flex justify-center mt-1 text-orange-500">
                   {Array.from({ length: 5 }).map((_, i) => (

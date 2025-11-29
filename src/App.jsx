@@ -23,6 +23,7 @@ import ProfilePage from "./Dashboard/Pages/ProfilePage";
 import SettingsLayout from "./Dashboard/Pages/SettingsLayout";
 import TimeOffTypeModal from "./Dashboard/Pages/Attendence/TimeOffRequestModal";
 import TimeOff from "./Dashboard/Pages/Attendence/TimeOff";
+import CandidateDocuments from "./Dashboard/Pages/Candidates/CandidateDocuments";
 
 
 function App() {
@@ -58,11 +59,12 @@ function App() {
             <Route path="candidates" element={<Candidate />} />
             <Route path="candidates/profile/:id" element={<CandidateProfile />} />
 
-             <Route path="attendence" element={<TimeOff />} />
-             <Route path="/dashboard/attendence/modal" element={<TimeOffTypeModal />} />
+            <Route path="attendence" element={<TimeOff />} />
+            <Route path="/dashboard/attendence/modal" element={<TimeOffTypeModal />} />
           </Route>
-
+          <Route path="/candidate/document/:token" element={<CandidateDocuments />} />
           {/* Catch-all route for 404 page */}
+
           <Route path="*" element={<NotFound />} />
 
         </Routes>
