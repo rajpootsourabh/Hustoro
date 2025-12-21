@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Download, Eye, FileText, Calendar, CheckCircle, AlertCircle, Filter, Users, Archive } from 'lucide-react';
+import { Download, Eye, FileText, Calendar, CheckCircle, AlertCircle, Filter, Users, Archive, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 const FilledDocumentTab = ({ applicationId }) => {
   const [filledDocuments, setFilledDocuments] = useState([]);
@@ -8,6 +8,10 @@ const FilledDocumentTab = ({ applicationId }) => {
   const [error, setError] = useState(null);
   const [filterStage, setFilterStage] = useState('all');
   const [downloading, setDownloading] = useState(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(3);
 
   useEffect(() => {
     if (applicationId) {
@@ -127,6 +131,28 @@ const FilledDocumentTab = ({ applicationId }) => {
     ? filledDocuments
     : filledDocuments.filter(doc => doc.stage_name === filterStage);
 
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredDocuments.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredDocuments.length);
+  const currentDocuments = filteredDocuments.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStage, itemsPerPage]);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const handleItemsPerPageChange = (value) => {
+    setItemsPerPage(parseInt(value));
+    setCurrentPage(1);
+  };
+
   if (loading) {
     return (
       <div className="w-full p-6">
@@ -174,7 +200,7 @@ const FilledDocumentTab = ({ applicationId }) => {
             </p>
           </div>
 
-          {/* Stage Filter */}
+          {/* Stage Filter
           {stages.length > 0 && (
             <div className="flex items-center gap-2">
               <Filter size={16} className="text-gray-400" />
@@ -189,43 +215,11 @@ const FilledDocumentTab = ({ applicationId }) => {
                 ))}
               </select>
             </div>
-          )}
+          )} */}
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center gap-3">
-              <Archive size={20} className="text-blue-600" />
-              <div>
-                <p className="text-2xl font-bold text-blue-700">{filledDocuments.length}</p>
-                <p className="text-sm text-blue-600">Total Filled</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-center gap-3">
-              <CheckCircle size={20} className="text-green-600" />
-              <div>
-                <p className="text-2xl font-bold text-green-700">{stages.length}</p>
-                <p className="text-sm text-green-600">Stages</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-            <div className="flex items-center gap-3">
-              <Users size={20} className="text-purple-600" />
-              <div>
-                <p className="text-2xl font-bold text-purple-700">
-                  {filteredDocuments.length}
-                </p>
-                <p className="text-sm text-purple-600">
-                  {filterStage === 'all' ? 'All Documents' : `In ${filterStage}`}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        
       </div>
 
       {/* Documents List */}
@@ -243,83 +237,174 @@ const FilledDocumentTab = ({ applicationId }) => {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {filteredDocuments.map((doc, index) => (
-            <div
-              key={`${doc.id}-${doc.stage_id}-${index}`}
-              className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors bg-white"
-            >
-              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                <div className="flex items-start gap-3 flex-1">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                      <CheckCircle size={14} className="text-green-600" />
-                    </div>
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1.5">
-                      <h3 className="font-medium text-gray-900 text-sm truncate">
-                        {doc.name}
-                      </h3>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800 border border-green-200 shrink-0">
-                        Completed
-                      </span>
+        <>
+          <div className="space-y-4 mb-6">
+            {currentDocuments.map((doc, index) => (
+              <div
+                key={`${doc.id}-${doc.stage_id}-${index}`}
+                className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors bg-white"
+              >
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                        <CheckCircle size={14} className="text-green-600" />
+                      </div>
                     </div>
 
-                    <p className="text-gray-600 text-xs mb-1.5 line-clamp-2">
-                      {doc.description || 'No description available'}
-                    </p>
-
-                    <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-4 text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <Calendar size={14} />
-                        <span className='text-xs'>Completed {formatDate(doc.completed_at)}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1.5">
+                        <h3 className="font-medium text-gray-900 text-sm truncate">
+                          {doc.name}
+                        </h3>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800 border border-green-200 shrink-0">
+                          Completed
+                        </span>
                       </div>
 
+                      <p className="text-gray-600 text-xs mb-1.5 line-clamp-2">
+                        {doc.description || 'No description available'}
+                      </p>
+
+                      <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-4 text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <Calendar size={14} />
+                          <span className='text-xs'>Completed {formatDate(doc.completed_at)}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Right column with stage and action buttons */}
+                  <div className="flex flex-col items-end gap-3">
+                    {/* View and Download buttons */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleView(doc)}
+                        className="flex items-center justify-center p-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                        title="View Document"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDownload(doc)}
+                        disabled={downloading === doc.id}
+                        className="flex items-center justify-center p-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-teal-600 disabled:cursor-not-allowed transition-colors"
+                        title="Download Document"
+                      >
+                        {downloading === doc.id ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                        ) : (
+                          <Download size={16} />
+                        )}
+                      </button>
+                    </div>
+                    {/* Stage badge
+                    <div className="bg-teal-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">
+                      {doc.stage_name}
+                    </div> */}
+                  </div>
                 </div>
+              </div>
+            ))}
+          </div>
 
-                {/* Right column with stage and action buttons */}
-                <div className="flex flex-col items-end gap-3">
-                  {/* View and Download buttons */}
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleView(doc)}
-                      className="flex items-center justify-center p-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                      title="View Document"
-                    >
-                      <Eye size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDownload(doc)}
-                      disabled={downloading === doc.id}
-                      className="flex items-center justify-center p-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-teal-600 disabled:cursor-not-allowed transition-colors"
-                      title="Download Document"
-                    >
-                      {downloading === doc.id ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                      ) : (
-                        <Download size={16} />
-                      )}
-                    </button>
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Items per page:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => handleItemsPerPageChange(e.target.value)}
+                  className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                >
+                  <option value="3">3</option>
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">
+                  Showing {startIndex + 1}-{endIndex} of {filteredDocuments.length}
+                </span>
+                
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handlePageChange(1)}
+                    disabled={currentPage === 1}
+                    className="p-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="First Page"
+                  >
+                    <ChevronsLeft size={16} />
+                  </button>
+                  
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="p-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Previous Page"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  
+                  <div className="flex items-center gap-1 mx-2">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`min-w-[32px] h-8 rounded-md text-sm ${
+                            currentPage === pageNum
+                              ? 'bg-teal-600 text-white'
+                              : 'border border-gray-300 text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
                   </div>
-                  {/* Stage badge */}
-                  <div className="bg-teal-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">
-                    {doc.stage_name}
-                  </div>
-
-
+                  
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="p-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Next Page"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                  
+                  <button
+                    onClick={() => handlePageChange(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="p-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Last Page"
+                  >
+                    <ChevronsRight size={16} />
+                  </button>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {/* Stats Footer */}
-      {filteredDocuments.length > 0 && (
+      {filteredDocuments.length > 0 && totalPages <= 1 && (
         <div className="mt-6 pt-4 border-t border-gray-200">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between text-sm text-gray-600 gap-2">
             <span className='text-xs'>

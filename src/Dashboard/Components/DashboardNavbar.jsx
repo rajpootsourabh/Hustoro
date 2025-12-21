@@ -134,7 +134,7 @@ const DashboardNavbar = ({ username, role, companyName, employeeId, companyLogo 
       <div className='max-w-[1700px] w-full text-white h-16 shadow-lg flex justify-between items-center gap-3 px-8'>
         {/* Left: Logo + Menu */}
         <div className='flex items-center gap-14'>
-          <Link to='/dashboard'>
+          <Link to='#'>
             <img src={logo} alt='logo' width={150} height={100} />
           </Link>
           <ul className='flex items-center gap-0'>

@@ -99,9 +99,9 @@ export default function CandidateProfileHeader({
           <button
             data-tooltip-id="tooltip"
             data-tooltip-content="Send Email"
-            className={`p-2 rounded-md hover:bg-gray-100 ${!isEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-            onClick={isEnabled ? onSendEmailClick : undefined}
-            disabled={!isEnabled}
+            className={`p-2 rounded-md hover:bg-gray-100`}
+            onClick={onSendEmailClick}
+            // disabled={!isEnabled}
           >
             <Mail size={20} className="text-gray-600" />
           </button>
@@ -133,9 +133,9 @@ export default function CandidateProfileHeader({
           <button
             data-tooltip-id="tooltip"
             data-tooltip-content="Generate Link"
-            className={`p-2 rounded-md hover:bg-gray-100 ${!isEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-            onClick={isEnabled ? onGenerateLinkClick : undefined}
-            disabled={!isEnabled}
+            className={`p-2 rounded-md hover:bg-gray-100`}
+            onClick={onGenerateLinkClick}
+            // disabled={!isEnabled}
           >
             <Link size={20} className="text-gray-600" />
           </button>
@@ -148,7 +148,7 @@ export default function CandidateProfileHeader({
             currentStageId={stageId}
             stages={stages}
             onSelect={handleStageChange}
-            disabled={!isEnabled}
+            // disabled={!isEnabled}
             applicationId={applicationId}
             isLoading={isLoadingStages} // Pass the loading state
           />

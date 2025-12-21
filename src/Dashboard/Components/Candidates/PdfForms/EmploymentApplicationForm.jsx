@@ -1,18 +1,18 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { PDFDocument } from 'pdf-lib';
 import SignatureCanvas from 'react-signature-canvas';
 import axios from 'axios';
 
 // Import section components
-import PersonalInformationSection from './sections/PersonalInformationSection';
-import PositionInformationSection from './sections/PositionInformationSection';
-import WorkPreferencesSection from './sections/WorkPreferencesSection';
-import EducationSection from './sections/EducationSection';
-import EmploymentHistorySection from './sections/EmploymentHistorySection';
-import ProfessionalReferencesSection from './sections/ProfessionalReferencesSection';
-import SignatureSection from './sections/SignatureSection';
+import PersonalInformationSection from './sections/EmploymentApplication/PersonalInformationSection';
+import PositionInformationSection from './sections/EmploymentApplication/PositionInformationSection';
+import WorkPreferencesSection from './sections/EmploymentApplication/WorkPreferencesSection';
+import EducationSection from './sections/EmploymentApplication/EducationSection';
+import EmploymentHistorySection from './sections/EmploymentApplication/EmploymentHistorySection';
+import ProfessionalReferencesSection from './sections/EmploymentApplication/ProfessionalReferencesSection';
+import SignatureSection from './sections/EmploymentApplication/SignatureSection';
 import StatusModal from '../../../../Components/StatusModal';
-import AwardsCertificationsSection from './sections/AwardsCertificationsSection';
+import AwardsCertificationsSection from './sections/EmploymentApplication/AwardsCertificationsSection';
 
 const EmploymentApplicationForm = ({ document, token, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -143,6 +143,7 @@ const EmploymentApplicationForm = ({ document, token, onClose, onSuccess }) => {
   const [generatingPreview, setGeneratingPreview] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
+  const [filledPdfBytes, setFilledPdfBytes] = useState(null); // store bytes to avoid re-fetching preview URL
   const [signatureDataUrl, setSignatureDataUrl] = useState('');
   const [signatureType, setSignatureType] = useState('text');
   const [activeSection, setActiveSection] = useState('personal');
@@ -249,7 +250,7 @@ const EmploymentApplicationForm = ({ document, token, onClose, onSuccess }) => {
             break;
           }
         } catch (error) {
-          console.log(`Signature field ${fieldName} not found`);
+          // ignore not-found
         }
       }
 
@@ -305,8 +306,6 @@ const EmploymentApplicationForm = ({ document, token, onClose, onSuccess }) => {
       const pdfDoc = await PDFDocument.load(pdfBuffer);
       const form = pdfDoc.getForm();
 
-      console.log('🔄 Filling Employment Application');
-
       // Fill all text fields
       const textFields = [
         "Name", "Date", "Address", "City", "State", "Zip", "Email Address", "Phone",
@@ -342,7 +341,7 @@ const EmploymentApplicationForm = ({ document, token, onClose, onSuccess }) => {
             field.setText(formData[fieldName] || "");
           }
         } catch (error) {
-          console.log(`Could not set field ${fieldName}`);
+          // ignore missing fields
         }
       });
 
@@ -367,7 +366,7 @@ const EmploymentApplicationForm = ({ document, token, onClose, onSuccess }) => {
             }
           }
         } catch (error) {
-          console.log(`Could not set checkbox ${fieldName}`);
+          // ignore missing checkboxes
         }
       });
 
@@ -381,10 +380,9 @@ const EmploymentApplicationForm = ({ document, token, onClose, onSuccess }) => {
               field.setText(formData["Signature1_es_:signer:signature"] || "");
             }
           } catch (error) {
-            console.log(`Could not set text for ${fieldName}`);
+            // ignore
           }
         });
-        // In the fillPdf function, update the drawn signature section:
       } else {
         // Use drawn signature - embed as image at exact field positions for BOTH signature fields
         if (signatureDataUrl) {
@@ -393,115 +391,74 @@ const EmploymentApplicationForm = ({ document, token, onClose, onSuccess }) => {
             const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
             const pages = pdfDoc.getPages();
 
-            // Get the exact positions of BOTH signature fields
+            const signatureFieldsToTry = [
+              "Signature1_es_:signer:signature",
+              "Signature2_es_:signer:signature"
+            ];
+
             const signaturePositions = [];
 
-            // Try to get position for first signature field
-            try {
-              const signature1Field = form.getTextField("Signature1_es_:signer:signature");
-              if (signature1Field) {
-                const widgets1 = signature1Field.acroField.getWidgets();
-                if (widgets1.length > 0) {
-                  const rect1 = widgets1[0].getRectangle();
-                  const pageRef1 = widgets1[0].P();
-                  let pageIndex1 = 0;
-
-                  // Find which page this widget belongs to
-                  for (let i = 0; i < pages.length; i++) {
-                    if (pages[i].ref === pageRef1) {
-                      pageIndex1 = i;
-                      break;
-                    }
+            for (const sfn of signatureFieldsToTry) {
+              try {
+                const field = form.getTextField(sfn);
+                if (!field) continue;
+                const widgets = field.acroField.getWidgets();
+                if (!widgets || widgets.length === 0) continue;
+                const rect = widgets[0].getRectangle();
+                const pageRef = widgets[0].P();
+                let pageIndex = 0;
+                for (let i = 0; i < pages.length; i++) {
+                  if (pages[i].ref === pageRef) {
+                    pageIndex = i;
+                    break;
                   }
-
-                  signaturePositions.push({
-                    ...rect1,
-                    pageIndex: pageIndex1,
-                    fieldName: "Signature1_es_:signer:signature"
-                  });
                 }
+                signaturePositions.push({
+                  x: rect.x ?? rect.left ?? 100,
+                  y: rect.y ?? rect.bottom ?? 600,
+                  width: rect.width ?? (rect.right - rect.left) ?? 200,
+                  height: rect.height ?? (rect.top - rect.bottom) ?? 50,
+                  pageIndex,
+                  fieldName: sfn
+                });
+              } catch (err) {
+                // ignore per-field errors
               }
-            } catch (error) {
-              console.log("Could not get position for Signature1");
             }
 
-            // Try to get position for second signature field
-            try {
-              const signature2Field = form.getTextField("Signature2_es_:signer:signature");
-              if (signature2Field) {
-                const widgets2 = signature2Field.acroField.getWidgets();
-                if (widgets2.length > 0) {
-                  const rect2 = widgets2[0].getRectangle();
-                  const pageRef2 = widgets2[0].P();
-                  let pageIndex2 = 0;
-
-                  // Find which page this widget belongs to
-                  for (let i = 0; i < pages.length; i++) {
-                    if (pages[i].ref === pageRef2) {
-                      pageIndex2 = i;
-                      break;
-                    }
-                  }
-
-                  signaturePositions.push({
-                    ...rect2,
-                    pageIndex: pageIndex2,
-                    fieldName: "Signature2_es_:signer:signature"
-                  });
-                }
-              }
-            } catch (error) {
-              console.log("Could not get position for Signature2");
-            }
-
-            // Draw signature at both positions
-            signaturePositions.forEach(position => {
-              if (pages[position.pageIndex]) {
-                pages[position.pageIndex].drawImage(signatureImage, {
+            // Draw signature at found positions
+            if (signaturePositions.length > 0) {
+              signaturePositions.forEach(position => {
+                const page = pages[position.pageIndex] || pages[0];
+                if (!page) return;
+                page.drawImage(signatureImage, {
                   x: position.x,
                   y: position.y,
                   width: position.width,
                   height: position.height,
                 });
-                console.log(`Drawn signature placed at ${position.fieldName} on page ${position.pageIndex + 1}`);
-              }
-            });
-
-            // If no specific positions found, use fallback positions
-            if (signaturePositions.length === 0) {
-              console.log("Using fallback positions for both signature fields");
-              // Fallback for first signature (usually on page 2)
+              });
+            } else {
+              // fallbacks
               if (pages[1]) {
-                pages[1].drawImage(signatureImage, {
-                  x: 100,
-                  y: 600,
-                  width: 200,
-                  height: 50,
-                });
-              }
-              // Fallback for second signature (usually on page 3 or 4)
-              if (pages[2]) {
-                pages[2].drawImage(signatureImage, {
-                  x: 100,
-                  y: 600,
-                  width: 200,
-                  height: 50,
-                });
+                pages[1].drawImage(signatureImage, { x: 100, y: 600, width: 200, height: 50 });
+              } else if (pages[0]) {
+                pages[0].drawImage(signatureImage, { x: 100, y: 600, width: 200, height: 50 });
               }
             }
           }
         }
 
         // Clear both signature text fields when using drawn signature
-        const signatureFields = ["Signature1_es_:signer:signature", "Signature2_es_:signer:signature"];
-        signatureFields.forEach(fieldName => {
+        const signatureTextFields = ["Signature1_es_:signer:signature", "Signature2_es_:signer:signature"];
+        signatureTextFields.forEach(fieldName => {
           try {
             const field = form.getTextField(fieldName);
             if (field) {
               field.setText("");
             }
           } catch (error) {
-            console.log(`Could not clear ${fieldName}`);
+            // ignore
           }
         });
       }
@@ -511,7 +468,7 @@ const EmploymentApplicationForm = ({ document, token, onClose, onSuccess }) => {
         try {
           f.enableReadOnly();
         } catch (err) {
-          console.warn("Could not set field to read-only:", err);
+          // ignore
         }
       });
 
@@ -520,7 +477,7 @@ const EmploymentApplicationForm = ({ document, token, onClose, onSuccess }) => {
       return filledPdfBytes;
 
     } catch (error) {
-      console.error('❌ Error filling Employment Application:', error);
+      console.error('Error filling Employment Application:', error);
       throw error;
     }
   };
@@ -528,8 +485,17 @@ const EmploymentApplicationForm = ({ document, token, onClose, onSuccess }) => {
   const handlePreview = async () => {
     try {
       setGeneratingPreview(true);
-      const filledPdfBytes = await fillPdf(formData, document.url);
-      const blob = new Blob([filledPdfBytes], { type: "application/pdf" });
+
+      // revoke old preview to avoid leaks
+      if (previewUrl) {
+        try { URL.revokeObjectURL(previewUrl); } catch (e) { /* ignore */ }
+        setPreviewUrl('');
+      }
+
+      const bytes = await fillPdf(formData, document.url);
+      setFilledPdfBytes(bytes);
+
+      const blob = new Blob([bytes], { type: "application/pdf" });
       const blobUrl = URL.createObjectURL(blob);
       setPreviewUrl(blobUrl);
     } catch (error) {
@@ -546,14 +512,17 @@ const EmploymentApplicationForm = ({ document, token, onClose, onSuccess }) => {
   const handleSubmit = async () => {
     try {
       setSubmitting(true);
-      const response = await fetch(previewUrl);
-      const filledPdfBlob = await response.blob();
+
+      // use stored bytes if available, otherwise regenerate
+      let bytes = filledPdfBytes;
+      if (!bytes) {
+        bytes = await fillPdf(formData, document.url);
+      }
+
+      const filledPdfBlob = new Blob([bytes], { type: "application/pdf" });
 
       const submitFormData = new FormData();
-      // CORRECTED: Use 'filled_document' instead of 'document'
       submitFormData.append('filled_document', filledPdfBlob, `${document.name}_filled.pdf`);
-      // You can remove document_id as it's not needed in the backend
-      // submitFormData.append('document_id', document.id);
 
       const uploadUrl = `${import.meta.env.VITE_API_BASE_URL}/candidate/document/${token}/submit`;
       const uploadResponse = await axios.post(uploadUrl, submitFormData, {
@@ -562,31 +531,48 @@ const EmploymentApplicationForm = ({ document, token, onClose, onSuccess }) => {
         },
       });
 
-      console.log('✅ Upload successful:', uploadResponse.data);
-      // Show success modal
+      // success
       showStatusModal(
         'success',
         'Document Submitted Successfully!',
-        'Your employment application has been submitted successfully. Thank you for completing the form.'
+        'Your employment application has been submitted successfully.'
       );
-      // Call onSuccess after a delay to let user see the success message
+
+      // cleanup preview and bytes
+      if (previewUrl) {
+        try { URL.revokeObjectURL(previewUrl); } catch (e) { /* ignore */ }
+      }
+      setPreviewUrl('');
+      setFilledPdfBytes(null);
+
+      // Call onSuccess and close after short delay
       setTimeout(() => {
-        onSuccess();
-      }, 3000);
+        try { onSuccess && onSuccess(); } catch (e) { /* ignore */ }
+        try { onClose && onClose(); } catch (e) { /* ignore */ }
+      }, 2000);
 
     } catch (error) {
       console.error('Error submitting PDF:', error);
       const errorMessage = error.response?.data?.message || 'Failed to submit document. Please try again.';
-      // Show error modal instead of alert
-      showStatusModal(
-        'error',
-        'Submission Failed',
-        errorMessage
-      );
+      showStatusModal('error', 'Submission Failed', errorMessage);
     } finally {
       setSubmitting(false);
     }
   };
+
+  // cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        try { URL.revokeObjectURL(previewUrl); } catch (e) { /* ignore */ }
+      }
+      if (sigCanvasRef.current) {
+        try { sigCanvasRef.current.clear(); } catch (e) { /* ignore */ }
+      }
+    };
+    // intentionally empty deps to run only on unmount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Render current section
   const renderCurrentSection = () => {

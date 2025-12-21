@@ -19,7 +19,7 @@ export default function StagesDropdown({
   const iconRef = useRef(null);
   const buttonRef = useRef(null);
 
-  const isEnabled = useRoleEnabled(5) && !disabled;
+  const isEnabled = true //useRoleEnabled(5) && !disabled;
 
   // Sync selected stage from props
   useEffect(() => {
@@ -40,16 +40,16 @@ export default function StagesDropdown({
   const label = isLoading
     ? "Loading stages..."
     : isChangingStage
-    ? "Moving..."
-    : isFinalStage
-      ? `${selectedStage?.name}`
-      : nextStage
-        ? nextStage.name
-        : selectedStage
-          ? `${selectedStage.name}`
-          : stages.length === 0
-            ? "No stages"
-            : "Select Stage";
+      ? "Moving..."
+      : isFinalStage
+        ? `${selectedStage?.name}`
+        : nextStage
+          ? nextStage.name
+          : selectedStage
+            ? `${selectedStage.name}`
+            : stages.length === 0
+              ? "No stages"
+              : "Select Stage";
 
   const toggleDropdown = (e) => {
     e.stopPropagation();
@@ -212,7 +212,7 @@ export default function StagesDropdown({
         className={`flex-1 text-sm px-4 py-2 text-left cursor-pointer rounded-l-3xl hover:bg-teal-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-w-40`}
       >
         {isChangingStage && <Loader2 size={16} className="animate-spin" />}
-        {label}
+        Move to {label}
       </button>
 
       <button
