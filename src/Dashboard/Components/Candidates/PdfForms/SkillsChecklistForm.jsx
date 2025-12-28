@@ -1,61 +1,30 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { PDFDocument } from 'pdf-lib';
+import SignatureCanvas from 'react-signature-canvas';
 import axios from 'axios';
-import StatusModal from '../../../../Components/StatusModal';
-import ADLSection from './sections/SkillsChecklist/ADLSection';
-// import HousekeepingSection from './sections/SkillsChecklist/HousekeepingSection';
-// import BodyMechanicsSection from './sections/SkillsChecklist/BodyMechanicsSection';
-// import GeneralSection from './sections/SkillsChecklist/GeneralSection';
-// import DiabeticSection from './sections/SkillsChecklist/DiabeticSection';
-// import GastrointestinalSection from './sections/SkillsChecklist/GastrointestinalSection';
-// import VitalSignsSection from './sections/SkillsChecklist/VitalSignsSection';
-// import GenitourinarySection from './sections/SkillsChecklist/GenitourinarySection';
-// import MedicalSection from './sections/SkillsChecklist/MedicalSection';
-// import EquipmentSection from './sections/SkillsChecklist/EquipmentSection';
-// import NeurologicalSection from './sections/SkillsChecklist/NeurologicalSection';
-// import RespiratorySection from './sections/SkillsChecklist/RespiratorySection';
-// import VascularSection from './sections/SkillsChecklist/VascularSection';
+
+// Import section components
+import SkillsChecklistSection from './sections/SkillsChecklist/SkillsChecklistSection';
 import SignatureSection from './sections/SkillsChecklist/SignatureSection';
+import StatusModal from '../../../../Components/StatusModal';
 
 const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
-  // Initialize form data based on the actual field names from the mapping
-  const initialFormData = {
-    // Text fields
+  const [formData, setFormData] = useState({
+    // Language fields
     "Languages other than English that I can speak and understand 1": "",
     "Languages other than English that I can speak and understand 2": "",
     "Languages other than English that I can speak and understand 3": "",
     "Print Name": "",
-    "Date": "",
     "Signature131_es_:signer:signature": "",
-    
-    // Initialize all checkbox fields from the mapping
-    ...createInitialCheckboxData()
-  };
+    "Date": "",
+  });
 
-  function createInitialCheckboxData() {
-    const checkboxData = {};
-    
-    // ADL Skills (Section 1)
-    for (let i = 6; i <= 21; i++) {
-      checkboxData[`1.1.${i-6}`] = false; // 1.1.0 to 1.1.15
-    }
-    for (let i = 22; i <= 37; i++) {
-      checkboxData[`1.2.${i-22}`] = false; // 1.2.0 to 1.2.15
-    }
-    // ... Continue for all sections based on the mapping
-    
-    // For now, let's initialize with a simpler approach
-    // We'll dynamically create field names as we need them
-    return checkboxData;
-  }
-
-  const [formData, setFormData] = useState(initialFormData);
   const [generatingPreview, setGeneratingPreview] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
   const [filledPdfBytes, setFilledPdfBytes] = useState(null);
   const [signatureDataUrl, setSignatureDataUrl] = useState('');
-  const [activeSection, setActiveSection] = useState('adl');
+  const [activeSection, setActiveSection] = useState('skills');
   const sigCanvasRef = useRef();
 
   // Status modal state
@@ -66,21 +35,235 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
     message: ''
   });
 
+  // Skills data structure matching the PDF
+   const skillsData = [
+    {
+      section: 1,
+      title: "ACTIVITIES OF DAILY LIVING",
+      skills: [
+        "Assisting with Eating",
+        "Meal Preparation",
+        "Grocery Shopping",
+        "Assistance with Ambulation",
+        "Accompany on Outings",
+        "Assistance with Wheelchair",
+        "Assistance with Bathing",
+        "Bed Bath or Shower",
+        "Assistance with Clothing",
+        "Diaper Changing",
+        "Oral Hygiene",
+        "Pericare",
+        "Shampoo",
+        "Shave",
+        "Foot and Nail Care",
+        "Skin Care"
+      ],
+      columnCount: 4,
+      skillCount: 16
+    },
+    {
+      section: 2,
+      title: "HOUSEKEEPING",
+      skills: [
+        "Bathroom Cleanup: tub, toilet, sink",
+        "Dust and Straighten",
+        "Laundry: wash, dry, fold",
+        "Bed-Making / Linen Change",
+        "Vacuum / Sweep / Mop",
+        "Kitchen Cleanup: dishes, wipe counters"
+      ],
+      columnCount: 4,
+      skillCount: 6
+    },
+    {
+      section: 3,
+      title: "BODY MECHANICS / ACTIVITY",
+      skills: [
+        "Transfer Techniques",
+        "ROM",
+        "Assistance with Exercises",
+        "Positioning / Repositioning",
+        "Transfers and Turning",
+        "Able to lift 50+ pounds"
+      ],
+      columnCount: 4,
+      skillCount: 6
+    },
+    {
+      section: 4,
+      title: "GENERAL",
+      skills: [
+        "CPR / First Aid",
+        "Companionship",
+        "Dressing Changes - Sterile",
+        "Wound Care",
+        "Wound Irrigation",
+        "Pressure Ulcer Care and Prevention",
+        "Universal Precautions",
+        "Isolation Techniques"
+      ],
+      columnCount: 4,
+      skillCount: 8
+    },
+    {
+      section: 5,
+      title: "DIABETIC CARE",
+      skills: [
+        "Diabetes (IDDM/INIDDM)",
+        "Use of Glucometers",
+        "Performing Finger Sticks"
+      ],
+      columnCount: 4,
+      skillCount: 3
+    },
+    {
+      section: 6,
+      title: "GASTROINTESTINAL",
+      skills: [
+        "Dehiscence",
+        "J-Tubes Feeding and Care",
+        "G-Tubes Feeding and Care",
+        "Placement Checks",
+        "Check for Residuals",
+        "Colostomy Care",
+        "Diets (ADA, Renal, Cardiac)",
+        "Nutritional Needs/Turgor",
+        "Hemovacs - Jackson Pratt",
+        "Maintains NG Tubes",
+        "Ostomy Care",
+        "Rectal Tubes/Bags",
+        "Tube Feedings",
+        "T-Tubes",
+        "GI Surgeries"
+      ],
+      columnCount: 4,
+      skillCount: 15
+    },
+    {
+      section: 7,
+      title: "VITAL SIGNS",
+      skills: [
+        "Temperature",
+        "Pulse",
+        "Respiration",
+        "Blood Pressure"
+      ],
+      columnCount: 4,
+      skillCount: 4
+    },
+    {
+      section: 8,
+      title: "GENITOURINARY/ELIMINATION",
+      skills: [
+        "Bed Pan Assistance",
+        "Urinal Assistance",
+        "Incontinence Care",
+        "Bowel Movements",
+        "Fistulas and Shunts Care",
+        "Foley Catheter Care",
+        "Ins and Outs Data (I&O)"
+      ],
+      columnCount: 4,
+      skillCount: 7
+    },
+    {
+      section: 9,
+      title: "MEDICAL ADMINISTRATION",
+      skills: [
+        "Duoderm",
+        "Enema Administration",
+        "Solosite Gel",
+        "Ear Drops",
+        "Eye Drops"
+      ],
+      columnCount: 4,
+      skillCount: 5
+    },
+    {
+      section: 10,
+      title: "MEDICAL EQUIPMENT",
+      skills: [
+        "Abdominal Binders",
+        "Cane / Crutches",
+        "Effica Beds/Clintiron Beds",
+        "Hospital Beds",
+        "Gait Belt",
+        "Hoyer Lift",
+        "Montgomery Straps",
+        "Sequential Compression Devices",
+        "Splints",
+        "Ted Stockings",
+        "Walker",
+        "Feeding Pumps"
+      ],
+      columnCount: 4,
+      skillCount: 12
+    },
+    {
+      section: 11,
+      title: "NEUROLOGICAL",
+      skills: [
+        "Seizure Precautions",
+        "Report Signs and Symptoms of CVA",
+        "Spinal Cord/Brain Injury"
+      ],
+      columnCount: 4,
+      skillCount: 3
+    },
+    {
+      section: 12,
+      title: "RESPIRATORY",
+      skills: [
+        "Oxygen Therapy",
+        "Suctioning",
+        "Tracheostomy Care"
+      ],
+      columnCount: 4,
+      skillCount: 3
+    },
+    {
+      section: 13,
+      title: "VASCULAR",
+      skills: [
+        "Peripheral Pulses",
+        "Fluid Overload",
+        "Infusion Devices (Home / Hospital)"
+      ],
+      columnCount: 4,
+      skillCount: 3
+    }
+  ];
+
+  // Initialize all checkbox fields to false
+  useEffect(() => {
+    const initialData = {
+      "Languages other than English that I can speak and understand 1": "",
+      "Languages other than English that I can speak and understand 2": "",
+      "Languages other than English that I can speak and understand 3": "",
+      "Print Name": "",
+      "Signature131_es_:signer:signature": "",
+      "Date": "",
+    };
+
+    // Initialize all checkbox fields to false
+    // CORRECTED PATTERN: section.column.skillIndex
+    skillsData.forEach(sectionData => {
+      // For each column (4 columns per skill: 0,1,2,3)
+      for (let column = 0; column < sectionData.columnCount; column++) {
+        // For each skill in the section
+        for (let skillIndex = 0; skillIndex < sectionData.skillCount; skillIndex++) {
+          const fieldName = `${sectionData.section}.${column + 1}.${skillIndex}`;
+          initialData[fieldName] = false;
+        }
+      }
+    });
+
+    setFormData(initialData);
+  }, []);
+
   // Navigation sections
   const sections = [
-    { id: 'adl', name: 'ADL Skills' },
-    { id: 'housekeeping', name: 'Housekeeping' },
-    { id: 'body', name: 'Body Mechanics' },
-    { id: 'general', name: 'General' },
-    { id: 'diabetic', name: 'Diabetic Care' },
-    { id: 'gastro', name: 'Gastrointestinal' },
-    { id: 'vitals', name: 'Vital Signs' },
-    { id: 'genito', name: 'Genitourinary' },
-    { id: 'medical', name: 'Medical' },
-    { id: 'equipment', name: 'Equipment' },
-    { id: 'neuro', name: 'Neurological' },
-    { id: 'resp', name: 'Respiratory' },
-    { id: 'vascular', name: 'Vascular' },
+    { id: 'skills', name: 'Skills Checklist' },
     { id: 'signature', name: 'Signature' }
   ];
 
@@ -107,35 +290,37 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
     }));
   };
 
-  // Handle checkbox selection
-  const handleCheckboxChange = (fieldName, checked) => {
-    // For radio button behavior, we need to clear other options in the same group
-    // The field name format is like "1.1.0", "1.1.1", etc.
-    // We need to clear all fields in the same skill group
-    
-    // Extract skill group (e.g., "1.1" from "1.1.0")
-    const skillGroup = fieldName.substring(0, fieldName.lastIndexOf('.'));
-    
-    // Clear all checkboxes in this skill group
-    const updatedFormData = { ...formData };
-    Object.keys(updatedFormData).forEach(key => {
-      if (key.startsWith(skillGroup + '.') && key !== fieldName) {
-        updatedFormData[key] = false;
-      }
-    });
-    
-    // Set the selected checkbox
-    updatedFormData[fieldName] = checked;
-    
-    setFormData(updatedFormData);
+  // Handle rating selection for a skill - only one column can be selected
+  const handleSkillRatingChange = (section, skillIndex, selectedColumn) => {
+    const updatedData = { ...formData };
+
+    // For each column (1-4)
+    for (let column = 1; column <= 4; column++) {
+      const fieldName = `${section}.${column}.${skillIndex}`;
+      // Set selected column to true, others to false
+      updatedData[fieldName] = (column === (selectedColumn + 1));
+    }
+
+    setFormData(updatedData);
   };
 
-  // Signature handling
+  // Get selected column for a skill (0-3 for UI, 1-4 for PDF)
+  const getSelectedColumn = (section, skillIndex) => {
+    for (let column = 1; column <= 4; column++) {
+      const fieldName = `${section}.${column}.${skillIndex}`;
+      if (formData[fieldName]) {
+        return column - 1; // Convert to 0-based for UI
+      }
+    }
+    return null;
+  };
+
+  // Signature handling functions - Only drawn signature
   const handleSignatureEnd = () => {
     if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
       const signatureDataURL = sigCanvasRef.current.toDataURL();
       setSignatureDataUrl(signatureDataURL);
-      handleInputChange("Signature131_es_:signer:signature", "Signed");
+      // Don't set text in formData - we'll embed the image directly
     }
   };
 
@@ -143,7 +328,6 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
     if (sigCanvasRef.current) {
       sigCanvasRef.current.clear();
       setSignatureDataUrl('');
-      handleInputChange("Signature131_es_:signer:signature", "");
     }
   };
 
@@ -160,18 +344,24 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
     }
   };
 
-  // PDF filling logic - SIMPLIFIED VERSION
+  // FIXED: PDF filling with correct field mapping
   const fillPdf = async (formData, pdfUrl) => {
     try {
+      console.log("Starting PDF fill...");
       const pdfResponse = await fetch(pdfUrl);
       const pdfBuffer = await pdfResponse.arrayBuffer();
       const pdfDoc = await PDFDocument.load(pdfBuffer);
       const form = pdfDoc.getForm();
 
-      console.log('🔄 Filling Skills Checklist form fields...');
+      // Get all fields for debugging
+      const allFields = form.getFields();
+      console.log(`Total fields in PDF: ${allFields.length}`);
+      
+      // Log all field names for debugging
+      const fieldNames = allFields.map(f => f.getName());
+      console.log('All field names:', fieldNames);
 
-      // Fill text fields first
-      console.log('🔄 Filling text fields...');
+      // Fill text fields (EXCEPT signature field)
       const textFields = [
         "Languages other than English that I can speak and understand 1",
         "Languages other than English that I can speak and understand 2",
@@ -185,132 +375,188 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
           const field = form.getTextField(fieldName);
           if (field) {
             field.setText(formData[fieldName] || "");
-            console.log(`✅ Set text field: ${fieldName} = "${formData[fieldName]}"`);
+            console.log(`Set text field ${fieldName}: ${formData[fieldName]}`);
+          } else {
+            console.warn(`Text field not found: ${fieldName}`);
           }
         } catch (error) {
-          console.log(`❌ Error with text field ${fieldName}:`, error.message);
+          console.warn(`Could not find text field ${fieldName}:`, error.message);
         }
       });
 
-      // Fill checkbox fields - ONLY FOR FIELDS THAT EXIST IN THE FORM
-      console.log('🔄 Filling checkbox fields...');
-      
-      // Get all form fields to see what actually exists
-      const allFields = form.getFields();
-      console.log('📋 Available fields in PDF:', allFields.map(f => f.getName()));
-      
-      // Try to fill checkboxes for fields that we have in formData
-      Object.keys(formData).forEach(fieldName => {
-        // Skip text fields and signature
-        if (textFields.includes(fieldName) || fieldName === "Signature131_es_:signer:signature") {
-          return;
-        }
+      // Fill checkbox fields
+      let checkedCount = 0;
+      let uncheckedCount = 0;
+      let notFoundCount = 0;
+
+      skillsData.forEach(sectionData => {
+        console.log(`Processing section ${sectionData.section}: ${sectionData.title}`);
         
-        // Only process checkbox-like field names
-        if (fieldName.match(/^\d+\.\d+\.\d+$/)) {
-          try {
-            const field = form.getCheckBox(fieldName);
-            if (field) {
-              field.setValue(formData[fieldName] || false);
-              console.log(`✅ Set checkbox: ${fieldName} = ${formData[fieldName]}`);
+        // For each skill in the section
+        for (let skillIndex = 0; skillIndex < sectionData.skillCount; skillIndex++) {
+          // For each column (1-4)
+          for (let column = 1; column <= 4; column++) {
+            const fieldName = `${sectionData.section}.${column}.${skillIndex}`;
+            const isChecked = formData[fieldName] === true;
+            
+            try {
+              const field = form.getCheckBox(fieldName);
+              if (field) {
+                if (isChecked) {
+                  field.check();
+                  checkedCount++;
+                } else {
+                  field.uncheck();
+                  uncheckedCount++;
+                }
+              } else {
+                notFoundCount++;
+                console.warn(`Checkbox field not found: ${fieldName}`);
+              }
+            } catch (error) {
+              notFoundCount++;
+              console.warn(`Error with field ${fieldName}:`, error.message);
             }
-          } catch (error) {
-            // Field might not exist, that's okay
           }
         }
       });
 
-      // Handle signature image
-      if (signatureDataUrl) {
-        const signatureImageBytes = await dataURLToImageBytes(signatureDataUrl);
-        if (signatureImageBytes) {
-          const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
-          const pages = pdfDoc.getPages();
+      console.log(`Checkbox summary: Checked=${checkedCount}, Unchecked=${uncheckedCount}, Not found=${notFoundCount}`);
 
-          try {
-            const signatureField = form.getTextField("Signature131_es_:signer:signature");
-            if (signatureField) {
-              const widgets = signatureField.acroField.getWidgets();
-              if (widgets && widgets.length > 0) {
-                const rect = widgets[0].getRectangle();
-                const pageRef = widgets[0].P();
-                
-                let pageIndex = 0;
-                for (let i = 0; i < pages.length; i++) {
-                  if (pages[i].ref === pageRef) {
-                    pageIndex = i;
-                    break;
+      // Handle signature image embedding (DRAWN SIGNATURE ONLY)
+      if (signatureDataUrl) {
+        try {
+          const signatureImageBytes = await dataURLToImageBytes(signatureDataUrl);
+          if (signatureImageBytes) {
+            const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
+            const pages = pdfDoc.getPages();
+
+            // Try to find signature field position
+            try {
+              const signatureField = form.getTextField("Signature131_es_:signer:signature");
+              if (signatureField) {
+                const widgets = signatureField.acroField.getWidgets();
+                if (widgets.length > 0) {
+                  const widget = widgets[0];
+                  const rect = widget.getRectangle();
+                  
+                  // Find which page this widget is on
+                  const pageRef = widget.P();
+                  let pageIndex = 0;
+                  for (let i = 0; i < pages.length; i++) {
+                    if (pages[i].ref === pageRef) {
+                      pageIndex = i;
+                      break;
+                    }
                   }
+                  
+                  // Draw the signature on the correct page
+                  if (pages[pageIndex]) {
+                    pages[pageIndex].drawImage(signatureImage, {
+                      x: rect.x || rect.left || 100,
+                      y: rect.y || rect.bottom || 100,
+                      width: rect.width || (rect.right - rect.left) || 200,
+                      height: rect.height || (rect.top - rect.bottom) || 50,
+                    });
+                  }
+                  
+                  // Clear the signature text field so it doesn't show text
+                  signatureField.setText("");
                 }
-                
-                pages[pageIndex].drawImage(signatureImage, {
-                  x: rect.x || rect.left || 100,
-                  y: rect.y || rect.bottom || 100,
-                  width: rect.width || (rect.right - rect.left) || 150,
-                  height: rect.height || (rect.top - rect.bottom) || 50,
+              } else {
+                console.warn("Signature text field not found in PDF");
+              }
+            } catch (err) {
+              console.warn("Could not find exact signature field position, using default:", err);
+              // Fallback to default position on first page
+              if (pages[0]) {
+                pages[0].drawImage(signatureImage, { 
+                  x: 100, 
+                  y: 100, 
+                  width: 200, 
+                  height: 50 
                 });
               }
             }
-          } catch (error) {
-            console.warn("Could not find signature field position:", error);
           }
+        } catch (error) {
+          console.error("Error embedding drawn signature:", error);
         }
       }
 
-      // Set signature text
-      try {
-        const signatureField = form.getTextField("Signature131_es_:signer:signature");
-        if (signatureField) {
-          signatureField.setText(formData["Signature131_es_:signer:signature"] || "");
-        }
-      } catch (error) {
-        console.log(`Error setting signature text field:`, error.message);
-      }
-
-      // Lock all fields
-      form.getFields().forEach((f) => {
+      // ========== FLATTENING WITH BETTER ERROR HANDLING ==========
+      console.log("Attempting to flatten form...");
+      
+      // First, try to enable read-only on all fields that exist
+      const existingFieldNames = fieldNames;
+      form.getFields().forEach((field) => {
         try {
-          f.enableReadOnly();
+          const fieldName = field.getName();
+          if (existingFieldNames.includes(fieldName)) {
+            field.enableReadOnly();
+          }
         } catch (err) {
-          // ignore
+          console.warn(`Could not make field read-only:`, err.message);
         }
       });
 
-      form.flatten();
+      try {
+        // Try to flatten only fields that exist
+        form.flatten();
+        console.log("Form flattened successfully");
+      } catch (flattenError) {
+        console.warn("Standard flatten failed:", flattenError.message);
+        
+        // Alternative: Flatten selectively by checking each field
+        try {
+          // Create a new form to track which fields to keep
+          allFields.forEach(field => {
+            try {
+              const fieldName = field.getName();
+              // Check if this field is in our formData or textFields
+              const shouldFlatten = 
+                existingFieldNames.includes(fieldName) && 
+                (textFields.includes(fieldName) || 
+                 fieldName.includes('.') || // checkbox fields
+                 fieldName === "Signature131_es_:signer:signature");
+                 
+              if (shouldFlatten) {
+                field.enableReadOnly();
+              }
+            } catch (err) {
+              // Ignore individual field errors
+            }
+          });
+          
+          // Try flatten again with more selective approach
+          try {
+            form.flatten();
+            console.log("Form flattened with selective approach");
+          } catch (finalError) {
+            console.warn("Final flatten failed, saving without flatten:", finalError.message);
+            // Just save the PDF without flattening
+          }
+        } catch (error) {
+          console.warn("Error in selective flattening:", error.message);
+          // Save PDF without flattening
+        }
+      }
+
       const filledPdfBytes = await pdfDoc.save();
+      console.log("PDF filled successfully");
       return filledPdfBytes;
 
     } catch (error) {
-      console.error('Error filling Skills Checklist form:', error);
+      console.error('Error filling Skills Checklist:', error);
       throw error;
     }
   };
 
   const handlePreview = async () => {
-    console.log('📊 Current formData:', formData);
-    
-    // Basic validation
-    if (!formData["Print Name"]) {
-      showStatusModal(
-        'error',
-        'Missing Information',
-        'Please enter your printed name.'
-      );
-      return;
-    }
-
-    if (!signatureDataUrl) {
-      showStatusModal(
-        'error',
-        'Signature Required',
-        'Please provide your signature.'
-      );
-      return;
-    }
-
     try {
       setGeneratingPreview(true);
 
+      // revoke old preview to avoid leaks
       if (previewUrl) {
         try { URL.revokeObjectURL(previewUrl); } catch (e) { /* ignore */ }
         setPreviewUrl('');
@@ -323,11 +569,10 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
       const blobUrl = URL.createObjectURL(blob);
       setPreviewUrl(blobUrl);
     } catch (error) {
-      console.error('Preview error:', error);
       showStatusModal(
         'error',
         'Preview Generation Failed',
-        `Failed to generate preview: ${error.message}. Please check the console for details.`
+        'Failed to generate preview. Please try again.'
       );
     } finally {
       setGeneratingPreview(false);
@@ -338,6 +583,7 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
     try {
       setSubmitting(true);
 
+      // use stored bytes if available, otherwise regenerate
       let bytes = filledPdfBytes;
       if (!bytes) {
         bytes = await fillPdf(formData, document.url);
@@ -355,18 +601,21 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
         },
       });
 
+      // success
       showStatusModal(
         'success',
         'Document Submitted Successfully!',
-        'Your Skills Checklist has been submitted successfully.'
+        'Your skills checklist has been submitted successfully.'
       );
 
+      // cleanup preview and bytes
       if (previewUrl) {
         try { URL.revokeObjectURL(previewUrl); } catch (e) { /* ignore */ }
       }
       setPreviewUrl('');
       setFilledPdfBytes(null);
 
+      // Call onSuccess and close after short delay
       setTimeout(() => {
         try { onSuccess && onSuccess(); } catch (e) { /* ignore */ }
         try { onClose && onClose(); } catch (e) { /* ignore */ }
@@ -381,83 +630,7 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
     }
   };
 
-  // Render current section
-  const renderCurrentSection = () => {
-    const commonProps = {
-      formData,
-      onCheckboxChange: handleCheckboxChange
-    };
-
-    switch (activeSection) {
-      case 'adl':
-        return <ADLSection {...commonProps} />;
-      // case 'housekeeping':
-      //   return <HousekeepingSection {...commonProps} />;
-      // case 'body':
-      //   return <BodyMechanicsSection {...commonProps} />;
-      // case 'general':
-      //   return <GeneralSection {...commonProps} />;
-      // case 'diabetic':
-      //   return <DiabeticSection {...commonProps} />;
-      // case 'gastro':
-      //   return <GastrointestinalSection {...commonProps} />;
-      // case 'vitals':
-      //   return <VitalSignsSection {...commonProps} />;
-      // case 'genito':
-      //   return <GenitourinarySection {...commonProps} />;
-      // case 'medical':
-      //   return <MedicalSection {...commonProps} />;
-      // case 'equipment':
-      //   return <EquipmentSection {...commonProps} />;
-      // case 'neuro':
-      //   return <NeurologicalSection {...commonProps} />;
-      // case 'resp':
-      //   return <RespiratorySection {...commonProps} />;
-      // case 'vascular':
-      //   return <VascularSection {...commonProps} />;
-      case 'signature':
-        return (
-          <SignatureSection
-            formData={formData}
-            onInputChange={handleInputChange}
-            signatureDataUrl={signatureDataUrl}
-            onSignatureEnd={handleSignatureEnd}
-            onClearSignature={clearSignature}
-            sigCanvasRef={sigCanvasRef}
-          />
-        );
-      default:
-        return <ADLSection {...commonProps} />;
-    }
-  };
-
-  // Calculate completion percentage based on actual selections
-  const calculateCompletion = () => {
-    // Count how many skills have at least one selection
-    const skillGroups = new Set();
-    let selectedSkills = 0;
-    
-    Object.keys(formData).forEach(key => {
-      if (key.match(/^\d+\.\d+\.\d+$/)) {
-        const skillGroup = key.substring(0, key.lastIndexOf('.'));
-        skillGroups.add(skillGroup);
-        
-        if (formData[key] === true) {
-          selectedSkills++;
-        }
-      }
-    });
-    
-    // Each skill group should have exactly one selection (4 options)
-    const totalPossibleSelections = skillGroups.size;
-    const percentage = totalPossibleSelections > 0 
-      ? Math.round((selectedSkills / totalPossibleSelections) * 100)
-      : 0;
-    
-    return percentage > 100 ? 100 : percentage;
-  };
-
-  // Cleanup on unmount
+  // cleanup on unmount
   useEffect(() => {
     return () => {
       if (previewUrl) {
@@ -470,35 +643,51 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Render current section
+  const renderCurrentSection = () => {
+    switch (activeSection) {
+      case 'skills':
+        return (
+          <SkillsChecklistSection
+            formData={formData}
+            skillsData={skillsData}
+            onInputChange={handleInputChange}
+            onSkillRatingChange={handleSkillRatingChange}
+            getSelectedColumn={getSelectedColumn}
+          />
+        );
+      case 'signature':
+        return (
+          <SignatureSection
+            formData={formData}
+            onInputChange={handleInputChange}
+            signatureDataUrl={signatureDataUrl}
+            onSignatureEnd={handleSignatureEnd}
+            onClearSignature={clearSignature}
+            sigCanvasRef={sigCanvasRef}
+          />
+        );
+      default:
+        return <SkillsChecklistSection
+          formData={formData}
+          skillsData={skillsData}
+          onInputChange={handleInputChange}
+          onSkillRatingChange={handleSkillRatingChange}
+          getSelectedColumn={getSelectedColumn}
+        />;
+    }
+  };
+
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-lg max-w-7xl w-full max-h-[95vh] overflow-hidden">
+        <div className="bg-white rounded-lg max-w-6xl w-full max-h-[95vh] overflow-hidden">
           <div className="flex justify-between items-center p-6 border-b">
-            <div>
-              <h2 className="text-xl font-semibold">Skills Checklist for Care Associates</h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Please indicate your level of experience next to each skill
-              </p>
-            </div>
+            <h2 className="text-xl font-semibold">Fill Skills Checklist</h2>
             <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">✕</button>
           </div>
 
           <div className="p-6 overflow-y-auto max-h-[85vh]">
-            {/* Progress Bar */}
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">Form Completion</span>
-                <span className="text-sm font-medium text-blue-600">{calculateCompletion()}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div 
-                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
-                  style={{ width: `${calculateCompletion()}%` }}
-                ></div>
-              </div>
-            </div>
-
             {/* Navigation */}
             <div className="mb-6">
               <div className="flex flex-wrap gap-2">
@@ -506,7 +695,7 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
                   <button
                     key={section.id}
                     onClick={() => setActiveSection(section.id)}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${activeSection === section.id
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeSection === section.id
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
@@ -517,46 +706,31 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
               </div>
             </div>
 
-            {/* Legend */}
-            <div className="mb-6 p-3 border border-gray-300 rounded bg-gray-50">
-              <h4 className="text-sm font-semibold text-gray-800 mb-2">Rating Legend:</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                  <span className="text-xs">1 - Very Experienced</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
-                  <span className="text-xs">2 - Moderate Experience</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-                  <span className="text-xs">3 - No Experience</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-gray-400 mr-2"></div>
-                  <span className="text-xs">4 - Do Not Want to Perform</span>
-                </div>
-              </div>
-              <p className="mt-2 text-xs text-gray-600">
-                <strong>Note:</strong> Select only one rating per skill. All ratings are mutually exclusive.
-              </p>
-            </div>
-
             {/* Current Section */}
             {renderCurrentSection()}
 
-            {/* Debug info (remove in production) */}
-            <div className="mt-4 p-3 border border-gray-300 rounded bg-gray-100">
-              <details className="text-sm">
-                <summary className="cursor-pointer font-medium text-gray-700">Debug Info</summary>
-                <div className="mt-2 text-xs">
-                  <p>Selected checkboxes: {Object.keys(formData).filter(k => formData[k] === true).length}</p>
-                  <p>Total form fields: {Object.keys(formData).length}</p>
-                  <p>Signature captured: {signatureDataUrl ? 'Yes' : 'No'}</p>
+            {/* Language Fields */}
+            {activeSection === 'skills' && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-4">Languages</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[1, 2, 3].map(num => (
+                    <div key={num}>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Language {num}
+                      </label>
+                      <input
+                        type="text"
+                        value={formData[`Languages other than English that I can speak and understand ${num}`]}
+                        onChange={(e) => handleInputChange(`Languages other than English that I can speak and understand ${num}`, e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder={`Language ${num}`}
+                      />
+                    </div>
+                  ))}
                 </div>
-              </details>
-            </div>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex gap-4 mb-6 mt-8">
@@ -593,6 +767,15 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
               )}
             </div>
 
+            {/* Debug Info - Show current selections */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-md">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Debug Info:</h4>
+              <div className="text-xs text-gray-600">
+                <p>Field pattern: section.column.skillIndex (e.g., 1.1.0 = Section 1, Column 1, Skill 0)</p>
+                <p>Selected fields: {Object.keys(formData).filter(key => formData[key] === true).length}</p>
+              </div>
+            </div>
+
             {/* PDF Preview */}
             {previewUrl && (
               <div className="mt-6">
@@ -612,7 +795,6 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
           </div>
         </div>
       </div>
-
       {/* Status Modal */}
       <StatusModal
         isOpen={statusModal.isOpen}

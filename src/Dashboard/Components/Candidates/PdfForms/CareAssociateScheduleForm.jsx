@@ -71,7 +71,7 @@ const CareAssociateScheduleForm = ({ document, token, onClose, onSuccess }) => {
     if (careAssociateSigCanvasRef.current && !careAssociateSigCanvasRef.current.isEmpty()) {
       const signatureDataURL = careAssociateSigCanvasRef.current.toDataURL();
       setCareAssociateSignature(signatureDataURL);
-      handleInputChange("Signature41_es_:signer:signature", "Signed");
+      handleInputChange("Signature41_es_:signer:signature", "");
     }
   };
 
@@ -79,7 +79,7 @@ const CareAssociateScheduleForm = ({ document, token, onClose, onSuccess }) => {
     if (mastercareSigCanvasRef.current && !mastercareSigCanvasRef.current.isEmpty()) {
       const signatureDataURL = mastercareSigCanvasRef.current.toDataURL();
       setMastercareSignature(signatureDataURL);
-      handleInputChange("Signature42_es_:signer:signature", "Signed");
+      handleInputChange("Signature42_es_:signer:signature", "");
     }
   };
 

@@ -65,7 +65,7 @@ const AbuseNeglectPolicyForm = ({ document, token, onClose, onSuccess }) => {
     if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
       const signatureDataURL = sigCanvasRef.current.toDataURL();
       setSignatureDataUrl(signatureDataURL);
-      handleInputChange("Signature107_es_:signer:signature", "Signed");
+      handleInputChange("Signature107_es_:signer:signature", "");
     }
   };
 

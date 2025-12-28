@@ -9,7 +9,7 @@ import FilledDocumentTab from './FilledDocumentTab';
 export default function CandidateTabs({ activeTab, setActiveTab, candidateData }) {
     const applicationId = candidateData?.id;
 
-    const tabs = ['Profile', 'Timeline', 'Communication', 'Review', 'Comments', 'Filled Documents'];
+    const tabs = ['Profile', 'Timeline', 'Communication', 'Review', 'Comments', 'Recieved Documents'];
 
     return (
         <div className="bg-white rounded-xl shadow-sm">
@@ -36,7 +36,7 @@ export default function CandidateTabs({ activeTab, setActiveTab, candidateData }
                 {activeTab === "Communication" && <CommunicationTab applicationId={applicationId} />}
                 {activeTab === "Review" && <ReviewTab applicationId={applicationId} />}
                 {activeTab === "Comments" && <CommentTab applicationId={applicationId} />}
-                {activeTab === "Filled Documents" && <FilledDocumentTab applicationId={applicationId} />}
+                {activeTab === "Recieved Documents" && <FilledDocumentTab applicationId={applicationId} />}
             </div>
         </div>
     );

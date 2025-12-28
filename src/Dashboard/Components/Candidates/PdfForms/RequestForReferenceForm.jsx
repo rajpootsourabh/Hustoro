@@ -4,6 +4,7 @@ import { PDFDocument } from 'pdf-lib';
 import axios from 'axios';
 import StatusModal from '../../../../Components/StatusModal';
 import RequestForReferenceSection from './sections/RequestForReference/RequestForReferenceSection';
+import SignatureCanvas from 'react-signature-canvas';
 
 const RequestForReferenceForm = ({ document, token, onClose, onSuccess }) => {
     const [formData, setFormData] = useState({
@@ -50,6 +51,8 @@ const RequestForReferenceForm = ({ document, token, onClose, onSuccess }) => {
     const [submitting, setSubmitting] = useState(false);
     const [previewUrl, setPreviewUrl] = useState('');
     const [filledPdfBytes, setFilledPdfBytes] = useState(null);
+    const [signatureDataUrl, setSignatureDataUrl] = useState('');
+    const sigCanvasRef = useRef();
 
     // Status modal state
     const [statusModal, setStatusModal] = useState({
@@ -90,7 +93,36 @@ const RequestForReferenceForm = ({ document, token, onClose, onSuccess }) => {
         }));
     };
 
-    // PDF filling logic
+    // Signature handling functions - Drawn signature only
+    const handleSignatureEnd = () => {
+        if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
+            const signatureDataURL = sigCanvasRef.current.toDataURL();
+            setSignatureDataUrl(signatureDataURL);
+            // Don't set text in formData - we'll embed the image directly
+        }
+    };
+
+    const clearSignature = () => {
+        if (sigCanvasRef.current) {
+            sigCanvasRef.current.clear();
+            setSignatureDataUrl('');
+        }
+    };
+
+    // Convert data URL to image bytes for PDF embedding
+    const dataURLToImageBytes = async (dataURL) => {
+        if (!dataURL) return null;
+        try {
+            const response = await fetch(dataURL);
+            const blob = await response.blob();
+            return new Uint8Array(await blob.arrayBuffer());
+        } catch (error) {
+            console.error("Error converting signature to image:", error);
+            return null;
+        }
+    };
+
+    // PDF filling logic with signature embedding
     const fillPdf = async (formData, pdfUrl) => {
         try {
             const pdfResponse = await fetch(pdfUrl);
@@ -98,13 +130,12 @@ const RequestForReferenceForm = ({ document, token, onClose, onSuccess }) => {
             const pdfDoc = await PDFDocument.load(pdfBuffer);
             const form = pdfDoc.getForm();
 
-            // Fill all text fields
+            // Fill all text fields (EXCEPT signature field)
             const textFields = [
                 "Please reply by", "Company Name 1", "Phone Number", "Employee Name", 
                 "Date of Birth", "I", "Date", "From", "To", "Reason for Leaving", 
                 "Salary", "Additional InformationRow1", "Name", "Date_2", "Title", 
-                "Mastercare Representative", "Date_3", "Signature202_es_:signer:signature", 
-                "Mastercare Office Address", "Address 1" // Added Address 1
+                "Mastercare Representative", "Date_3", "Mastercare Office Address", "Address 1"
             ];
 
             console.log('🔄 Filling text fields...');
@@ -148,6 +179,67 @@ const RequestForReferenceForm = ({ document, token, onClose, onSuccess }) => {
                     console.log(`❌ Error setting checkbox ${fieldName}:`, error.message);
                 }
             });
+
+            // Handle signature image embedding (DRAWN SIGNATURE ONLY)
+            if (signatureDataUrl) {
+                try {
+                    const signatureImageBytes = await dataURLToImageBytes(signatureDataUrl);
+                    if (signatureImageBytes) {
+                        const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
+                        const pages = pdfDoc.getPages();
+
+                        // Try to find signature field position
+                        try {
+                            const signatureField = form.getTextField("Signature202_es_:signer:signature");
+                            if (signatureField) {
+                                const widgets = signatureField.acroField.getWidgets();
+                                if (widgets && widgets.length > 0) {
+                                    const widget = widgets[0];
+                                    const rect = widget.getRectangle();
+                                    
+                                    // Find which page this widget is on
+                                    const pageRef = widget.P();
+                                    let pageIndex = 0;
+                                    for (let i = 0; i < pages.length; i++) {
+                                        if (pages[i].ref === pageRef) {
+                                            pageIndex = i;
+                                            break;
+                                        }
+                                    }
+                                    
+                                    // Draw the signature on the correct page
+                                    if (pages[pageIndex]) {
+                                        pages[pageIndex].drawImage(signatureImage, {
+                                            x: rect.x || rect.left || 100,
+                                            y: rect.y || rect.bottom || 100,
+                                            width: rect.width || (rect.right - rect.left) || 200,
+                                            height: rect.height || (rect.top - rect.bottom) || 50,
+                                        });
+                                    }
+                                    
+                                    // Clear the signature text field so it doesn't show text
+                                    signatureField.setText("");
+                                }
+                            } else {
+                                console.warn("Signature text field not found in PDF");
+                            }
+                        } catch (err) {
+                            console.warn("Could not find exact signature field position, using default:", err);
+                            // Fallback to default position on first page
+                            if (pages[0]) {
+                                pages[0].drawImage(signatureImage, { 
+                                    x: 100, 
+                                    y: 100, 
+                                    width: 200, 
+                                    height: 50 
+                                });
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error embedding drawn signature:", error);
+                }
+            }
 
             // Lock all fields
             form.getFields().forEach((f) => {
@@ -248,16 +340,88 @@ const RequestForReferenceForm = ({ document, token, onClose, onSuccess }) => {
             if (previewUrl) {
                 try { URL.revokeObjectURL(previewUrl); } catch (e) { /* ignore */ }
             }
+            if (sigCanvasRef.current) {
+                try { sigCanvasRef.current.clear(); } catch (e) { /* ignore */ }
+            }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Render signature section
+    const renderSignatureSection = () => {
+        return (
+            <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-4">Signature & Date</h3>
+                
+                <div className="flex justify-between items-end mb-4">
+                    <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Applicant Signature</label>
+                        
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm text-gray-600">Draw your signature below:</span>
+                            <button
+                                type="button"
+                                onClick={clearSignature}
+                                className="text-sm text-red-600 hover:text-red-800"
+                            >
+                                Clear Signature
+                            </button>
+                        </div>
+                        
+                        <div className="border border-gray-300 rounded-md overflow-hidden bg-white">
+                            <SignatureCanvas
+                                ref={sigCanvasRef}
+                                canvasProps={{
+                                    className: "w-full h-32 bg-white",
+                                    style: { cursor: 'crosshair' }
+                                }}
+                                onEnd={handleSignatureEnd}
+                            />
+                        </div>
+                        
+                        {signatureDataUrl && (
+                            <div className="mt-2">
+                                <p className="text-xs text-green-600">
+                                    ✓ Signature captured. You can re-draw if needed.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="ml-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <input
+                            type="date"
+                            value={formData["Date"]}
+                            onChange={(e) => handleInputChange("Date", e.target.value)}
+                            className="w-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                </div>
+
+                {/* Signature Preview */}
+                {signatureDataUrl && (
+                    <div className="mb-4 p-3 border border-gray-200 rounded bg-white">
+                        <p className="text-sm font-medium text-gray-700 mb-2">Signature Preview:</p>
+                        <div className="border border-gray-300 rounded p-2 bg-white">
+                            <img 
+                                src={signatureDataUrl} 
+                                alt="Signature preview" 
+                                className="h-16 max-w-full object-contain"
+                            />
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     return (
         <>
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                 <div className="bg-white rounded-lg max-w-6xl w-full max-h-[95vh] overflow-hidden">
                     <div className="flex justify-between items-center p-6 border-b">
-                        <h2 className="text-xl font-semibold">Fill Request for Reference Form</h2>
+                        <h2 className="text-xl font-semibold">Request for Reference Form</h2>
                         <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">✕</button>
                     </div>
 
@@ -268,6 +432,9 @@ const RequestForReferenceForm = ({ document, token, onClose, onSuccess }) => {
                             onInputChange={handleInputChange}
                             onCheckboxChange={handleCheckboxChange}
                         />
+
+                        {/* Signature Section */}
+                        {renderSignatureSection()}
 
                         {/* Action Buttons */}
                         <div className="flex gap-4 mb-6 mt-8">

@@ -108,7 +108,7 @@ const IDBadgeAgreementForm = ({ document, token, onClose, onSuccess }) => {
         if (canvasRef.current && !canvasRef.current.isEmpty()) {
             const signatureDataURL = canvasRef.current.toDataURL();
             signatureUrlSetter(signatureDataURL);
-            handleInputChange(signatureField, "Signed");
+            handleInputChange(signatureField, "");
         }
     };
 

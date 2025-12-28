@@ -28,22 +28,6 @@ const DashboardNavbar = ({ username, role, companyName, employeeId, companyLogo 
       { label: 'Files', path: '#' },
       { label: 'Reports', path: '#' },
     ],
-    2: [
-      { label: 'Jobs', path: '/dashboard/jobs' },
-      { label: 'Candidates', path: '/dashboard/candidates' },
-      { label: 'Employee Management', path: '/dashboard/employees' },
-      { label: 'Attendance', path: '/dashboard/attendence' },
-      { label: 'Files', path: '#' },
-      { label: 'Reports', path: '#' },
-    ],
-    3: [
-      { label: 'Jobs', path: '/dashboard/jobs' },
-      { label: 'Candidates', path: '/dashboard/candidates' },
-      { label: 'Employee Management', path: '/dashboard/employees' },
-      { label: 'Attendance', path: '/dashboard/attendence' },
-      { label: 'Files', path: '#' },
-      { label: 'Reports', path: '#' },
-    ],
     4: [
       { label: 'Jobs', path: '/dashboard/jobs' },
       { label: 'Candidates', path: '/dashboard/candidates' },
@@ -60,6 +44,11 @@ const DashboardNavbar = ({ username, role, companyName, employeeId, companyLogo 
       { label: 'Files', path: '#' },
       { label: 'Reports', path: '#' },
     ],
+    6: [
+      { label: 'Candidates', path: '/dashboard/candidates' },
+      { label: 'Files', path: '#' },
+      { label: 'Reports', path: '#' },
+    ]
   };
 
   useEffect(() => {

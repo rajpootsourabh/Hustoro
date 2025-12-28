@@ -88,7 +88,7 @@ const OrientationAcknowledgementsForm = ({ document, token, onClose, onSuccess }
         if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
             const signatureDataURL = sigCanvasRef.current.toDataURL();
             setSignatureDataUrl(signatureDataURL);
-            handleInputChange("Signature31_es_:signer:signature", "Signed");
+            handleInputChange("Signature31_es_:signer:signature", "");
         }
     };
 

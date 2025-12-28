@@ -114,7 +114,7 @@ const OrientationCurriculumForm = ({ document, token, onClose, onSuccess }) => {
     if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
       const signatureDataURL = sigCanvasRef.current.toDataURL();
       setSignatureDataUrl(signatureDataURL);
-      handleInputChange("Signature1_es_:signer:signature", "Signed");
+      handleInputChange("Signature1_es_:signer:signature", "");
     }
   };
 

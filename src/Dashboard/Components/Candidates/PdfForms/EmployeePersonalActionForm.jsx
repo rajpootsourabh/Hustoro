@@ -207,7 +207,7 @@ const EmployeePersonalActionForm = ({ document, token, onClose, onSuccess }) => 
     if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
       const signatureDataURL = sigCanvasRef.current.toDataURL();
       setSignatureDataUrl(signatureDataURL);
-      handleInputChange("Signature", "Signed");
+      handleInputChange("Signature", "");
     }
   };
 

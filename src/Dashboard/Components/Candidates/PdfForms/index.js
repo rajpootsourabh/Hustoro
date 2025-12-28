@@ -14,13 +14,16 @@ import HepatitisBConsentForm from "./HepatitisBConsentForm";
 import PreEmploymentDrugConsentForm from "./PreEmploymentDrugConsentForm";
 import IDBadgeAgreementForm from "./IDBadgeAgreementForm";
 import SkillsChecklistForm from "./SkillsChecklistForm";
+import NonDisclosureNoncompeteForm from "./NonDisclosureNoncompeteForm";
+import W4Form2023 from "./W4Form2023";
+import I9Form from "./I9Form";
 
 
 
 export const pdfFormRegistry = {
   1: EmploymentApplicationForm,
   2: EqualOpportunityForm,
-  // 3: SkillsChecklistForm,
+  3: SkillsChecklistForm,
   4: RequestForReferenceForm,
   5: BackgroundCheckForm,
   6: CareAvailabilityForm,
@@ -34,6 +37,9 @@ export const pdfFormRegistry = {
   14: HepatitisBConsentForm,
   15: PreEmploymentDrugConsentForm,
   16: IDBadgeAgreementForm,
+  17: NonDisclosureNoncompeteForm,
+  18: I9Form,
+  19: W4Form2023
 };
 
 export const getPdfForm = (documentId) => {

@@ -88,34 +88,34 @@ export default function CandidateProfile() {
         }
     };
 
-    // ✅ Updated stage update for dynamic stages
-    const updateStage = async (newStageId) => {
-        try {
-            const response = await axios.post(
-                `${import.meta.env.VITE_API_BASE_URL}/job-applications/${id}/set-stage`,
-                { stage_id: newStageId },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${localStorage.getItem("access_token")}`
-                    },
-                }
-            );
+// ✅ Updated stage update for dynamic stages
+const updateStage = async (payload) => {
+  try {
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/job-applications/${id}/set-stage`,
+      payload, // Accept full payload object
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        },
+      }
+    );
 
-            // Update local state
-            setStageId(newStageId);
+    // Update local state with the new stage ID
+    setStageId(payload.stage_id);
 
-            // Refresh candidate data to get updated stage information
-            fetchCandidate();
+    // Refresh candidate data to get updated stage information
+    fetchCandidate();
 
-            showSnackbar("Candidate moved to new stage successfully.", "success");
-            console.log('Stage updated:', response.data);
-        } catch (error) {
-            console.error('Failed to update stage:', error);
-            showSnackbar("Failed to move candidate to new stage. Please try again.", "error");
-            throw error; // Re-throw to let StagesDropdown handle loading state
-        }
-    };
+    showSnackbar("Candidate moved to new stage successfully.", "success");
+    console.log('Stage updated:', response.data);
+  } catch (error) {
+    console.error('Failed to update stage:', error);
+    showSnackbar("Failed to move candidate to new stage. Please try again.", "error");
+    throw error; // Re-throw to let StagesDropdown handle loading state
+  }
+};
 
     const fetchCandidate = async () => {
         setIsLoading(true);

@@ -110,9 +110,9 @@ const HepatitisBConsentForm = ({ document, token, onClose, onSuccess }) => {
       
       // Set signature text based on active section
       if (activeSection === 'consent') {
-        handleInputChange("Signature124_es_:signer:signature", "Signed");
+        handleInputChange("Signature124_es_:signer:signature", "");
       } else {
-        handleInputChange("Signature125_es_:signer:signature", "Signed");
+        handleInputChange("Signature125_es_:signer:signature", "");
       }
     }
   };

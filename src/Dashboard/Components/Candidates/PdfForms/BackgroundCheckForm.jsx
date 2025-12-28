@@ -87,7 +87,7 @@ const BackgroundCheckForm = ({ document, token, onClose, onSuccess }) => {
     if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
       const signatureDataURL = sigCanvasRef.current.toDataURL();
       setSignatureDataUrl(signatureDataURL);
-      handleInputChange("Signature103_es_:signer:signature", "Signed");
+      handleInputChange("Signature103_es_:signer:signature", "");
     }
   };
 
