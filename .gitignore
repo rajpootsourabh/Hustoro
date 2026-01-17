@@ -26,3 +26,4 @@ dist-ssr
 *.sw?
 deploy.bat
 .env*
+deploy.sh
