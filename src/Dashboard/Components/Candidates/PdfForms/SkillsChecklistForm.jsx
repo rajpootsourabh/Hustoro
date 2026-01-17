@@ -36,7 +36,7 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
   });
 
   // Skills data structure matching the PDF
-   const skillsData = [
+  const skillsData = [
     {
       section: 1,
       title: "ACTIVITIES OF DAILY LIVING",
@@ -356,7 +356,7 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
       // Get all fields for debugging
       const allFields = form.getFields();
       console.log(`Total fields in PDF: ${allFields.length}`);
-      
+
       // Log all field names for debugging
       const fieldNames = allFields.map(f => f.getName());
       console.log('All field names:', fieldNames);
@@ -391,14 +391,14 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
 
       skillsData.forEach(sectionData => {
         console.log(`Processing section ${sectionData.section}: ${sectionData.title}`);
-        
+
         // For each skill in the section
         for (let skillIndex = 0; skillIndex < sectionData.skillCount; skillIndex++) {
           // For each column (1-4)
           for (let column = 1; column <= 4; column++) {
             const fieldName = `${sectionData.section}.${column}.${skillIndex}`;
             const isChecked = formData[fieldName] === true;
-            
+
             try {
               const field = form.getCheckBox(fieldName);
               if (field) {
@@ -439,7 +439,7 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
                 if (widgets.length > 0) {
                   const widget = widgets[0];
                   const rect = widget.getRectangle();
-                  
+
                   // Find which page this widget is on
                   const pageRef = widget.P();
                   let pageIndex = 0;
@@ -449,7 +449,7 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
                       break;
                     }
                   }
-                  
+
                   // Draw the signature on the correct page
                   if (pages[pageIndex]) {
                     pages[pageIndex].drawImage(signatureImage, {
@@ -459,7 +459,7 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
                       height: rect.height || (rect.top - rect.bottom) || 50,
                     });
                   }
-                  
+
                   // Clear the signature text field so it doesn't show text
                   signatureField.setText("");
                 }
@@ -470,11 +470,11 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
               console.warn("Could not find exact signature field position, using default:", err);
               // Fallback to default position on first page
               if (pages[0]) {
-                pages[0].drawImage(signatureImage, { 
-                  x: 100, 
-                  y: 100, 
-                  width: 200, 
-                  height: 50 
+                pages[0].drawImage(signatureImage, {
+                  x: 100,
+                  y: 100,
+                  width: 200,
+                  height: 50
                 });
               }
             }
@@ -486,7 +486,7 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
 
       // ========== FLATTENING WITH BETTER ERROR HANDLING ==========
       console.log("Attempting to flatten form...");
-      
+
       // First, try to enable read-only on all fields that exist
       const existingFieldNames = fieldNames;
       form.getFields().forEach((field) => {
@@ -506,7 +506,7 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
         console.log("Form flattened successfully");
       } catch (flattenError) {
         console.warn("Standard flatten failed:", flattenError.message);
-        
+
         // Alternative: Flatten selectively by checking each field
         try {
           // Create a new form to track which fields to keep
@@ -514,12 +514,12 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
             try {
               const fieldName = field.getName();
               // Check if this field is in our formData or textFields
-              const shouldFlatten = 
-                existingFieldNames.includes(fieldName) && 
-                (textFields.includes(fieldName) || 
-                 fieldName.includes('.') || // checkbox fields
-                 fieldName === "Signature131_es_:signer:signature");
-                 
+              const shouldFlatten =
+                existingFieldNames.includes(fieldName) &&
+                (textFields.includes(fieldName) ||
+                  fieldName.includes('.') || // checkbox fields
+                  fieldName === "Signature131_es_:signer:signature");
+
               if (shouldFlatten) {
                 field.enableReadOnly();
               }
@@ -527,7 +527,7 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
               // Ignore individual field errors
             }
           });
-          
+
           // Try flatten again with more selective approach
           try {
             form.flatten();
@@ -765,15 +765,6 @@ const SkillsChecklistForm = ({ document, token, onClose, onSuccess }) => {
                   )}
                 </button>
               )}
-            </div>
-
-            {/* Debug Info - Show current selections */}
-            <div className="mt-4 p-3 bg-gray-50 rounded-md">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Debug Info:</h4>
-              <div className="text-xs text-gray-600">
-                <p>Field pattern: section.column.skillIndex (e.g., 1.1.0 = Section 1, Column 1, Skill 0)</p>
-                <p>Selected fields: {Object.keys(formData).filter(key => formData[key] === true).length}</p>
-              </div>
             </div>
 
             {/* PDF Preview */}
