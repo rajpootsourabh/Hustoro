@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import Job from '../../Components/job'
+import Job from '../../Components/Job'
 import { Link, useNavigate } from 'react-router-dom'
 import { changeTitle } from '../../../utils/changeTitle'
 import axios from 'axios'

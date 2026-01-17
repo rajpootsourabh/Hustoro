@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import Navbar from '../Components/Navbar'
-import candidateImg from '../assets/candidate.png'
+import candidateImg from '../assets/Candidate.png'
 import tick from '../assets/tick.svg'
 import ats from '../assets/ats.png'
 import Footer from '../Components/Footer'
