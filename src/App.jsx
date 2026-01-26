@@ -24,6 +24,10 @@ import SettingsLayout from "./Dashboard/Pages/SettingsLayout";
 import TimeOffTypeModal from "./Dashboard/Pages/Attendence/TimeOffRequestModal";
 import TimeOff from "./Dashboard/Pages/Attendence/TimeOff";
 import CandidateDocuments from "./Dashboard/Pages/Candidates/CandidateDocuments";
+import Reports from "./Dashboard/Pages/Reports/Reports";
+import InvoiceList from "./Dashboard/Pages/Reports/InvoiceList";
+import CandidateReports from "./Dashboard/Pages/Reports/CandidateReports";
+import CandidateInvoices from "./Dashboard/Pages/Reports/CandidateInvoices";
 
 
 function App() {
@@ -58,6 +62,12 @@ function App() {
             <Route path="/dashboard/employee/:id/view" element={<ViewProfile />} />
             <Route path="candidates" element={<Candidate />} />
             <Route path="candidates/profile/:id" element={<CandidateProfile />} />
+
+            <Route path="reports" element={<Reports />}>
+              <Route index element={<CandidateReports />} />
+              <Route path="candidate/:candidateId/invoices" element={<CandidateInvoices />} />
+              <Route path="invoices" element={<InvoiceList />} />
+            </Route>
 
             <Route path="attendence" element={<TimeOff />} />
             <Route path="/dashboard/attendence/modal" element={<TimeOffTypeModal />} />

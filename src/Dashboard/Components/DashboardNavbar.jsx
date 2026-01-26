@@ -26,7 +26,6 @@ const DashboardNavbar = ({ username, role, companyName, employeeId, companyLogo 
       { label: 'Employee Management', path: '/dashboard/employees' },
       { label: 'Attendance', path: '/dashboard/attendence' },
       { label: 'Files', path: '#' },
-      { label: 'Reports', path: '#' },
     ],
     4: [
       { label: 'Jobs', path: '/dashboard/jobs' },
@@ -34,7 +33,7 @@ const DashboardNavbar = ({ username, role, companyName, employeeId, companyLogo 
       { label: 'Employee Management', path: '/dashboard/employees' },
       { label: 'Attendance', path: '/dashboard/attendence' },
       { label: 'Files', path: '#' },
-      { label: 'Reports', path: '#' },
+      { label: 'Reports', path: '/dashboard/reports' },
     ],
     5: [
       { label: 'Jobs', path: '/dashboard/jobs' },
@@ -42,12 +41,11 @@ const DashboardNavbar = ({ username, role, companyName, employeeId, companyLogo 
       { label: 'Employee Management', path: '/dashboard/employees' },
       { label: 'Attendance', path: '/dashboard/attendence' },
       { label: 'Files', path: '#' },
-      { label: 'Reports', path: '#' },
+      { label: 'Reports', path: '/dashboard/reports' },
     ],
     6: [
       { label: 'Candidates', path: '/dashboard/candidates' },
       { label: 'Files', path: '#' },
-      { label: 'Reports', path: '#' },
     ]
   };
 
