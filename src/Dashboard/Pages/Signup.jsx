@@ -16,7 +16,7 @@ import Loader from '../Components/Loader';
 import { changeTitle } from '../../utils/changeTitle';
 import { useSnackbar } from '../Components/SnackbarContext';
 import StageConfigurationModal from '../../Components/StageConfigurationModal';
-import { Check, CheckIcon } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 const Signup = () => {
   const [loading, setLoading] = useState(false);
@@ -24,7 +24,6 @@ const Signup = () => {
   const [error, setError] = useState("");
   const [availableDocuments, setAvailableDocuments] = useState([]);
   const [stages, setStages] = useState([]);
-  const [useDefaultStages, setUseDefaultStages] = useState(true);
   const [stageModalOpen, setStageModalOpen] = useState(false);
   const [stagesTouched, setStagesTouched] = useState(false);
   const navigate = useNavigate();
@@ -88,7 +87,7 @@ const Signup = () => {
     }),
     onSubmit: (values) => {
       // Validate custom stages before submission
-      if (!useDefaultStages && stages.length === 0) {
+      if (stages.length === 0) {
         setStagesTouched(true);
         setError("Please configure at least one custom stage");
         return;
@@ -101,19 +100,8 @@ const Signup = () => {
     },
   });
 
-  const handleUseDefaultStagesChange = (e) => {
-    setUseDefaultStages(e.target.checked);
-    // Reset stages when switching back to default
-    if (e.target.checked) {
-      setStages([]);
-      setStagesTouched(false);
-      setError(""); // Clear any custom stage errors
-    }
-  };
-
   const handleStageModalOpen = () => {
     setStageModalOpen(true);
-    // Don't set stagesTouched here - only set it on form submission
   };
 
   const handleStageModalClose = () => {
@@ -129,7 +117,7 @@ const Signup = () => {
 
       setLoading(true);
 
-      // Build payload conditionally
+      // Build payload with custom stages
       const payload = {
         companyName: values.companyName,
         companyWebsite: values.companyWebsite,
@@ -141,13 +129,9 @@ const Signup = () => {
         last_name: "Singh",
         email: values.email,
         password: values.password,
-        stage_type: useDefaultStages ? 'default' : 'custom',
+        stage_type: 'custom',
+        stages: stages,
       };
-
-      // Only add stages for custom stage type
-      if (!useDefaultStages) {
-        payload.stages = stages;
-      }
 
       console.log('Registration payload:', payload);
 
@@ -218,8 +202,7 @@ const Signup = () => {
   ];
 
   // Check if custom stages are required and valid
-  // Only show error after form submission attempt (stagesTouched is true)
-  const showCustomStagesError = !useDefaultStages && stages.length === 0 && stagesTouched;
+  const showCustomStagesError = stages.length === 0 && stagesTouched;
 
   return (
     <div
@@ -372,63 +355,48 @@ const Signup = () => {
                 helperText={formik.touched.password && formik.errors.password}
               />
 
-              {/* Stage Configuration Toggle */}
-              <div className={`border rounded-lg p-4 ${showCustomStagesError ? 'border-red-500 bg-red-50' : 'bg-gray-50'}`}>
-                <FormGroup>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={useDefaultStages}
-                        onChange={handleUseDefaultStagesChange}
-                      />
-                    }
-                    label={
-                      <div>
-                        <span className="font-medium">Use Default Stages</span>
-                        <p className="text-sm text-gray-600">
-                          Pre-configured hiring pipeline with Pre-Hire and Onboarding stages
-                        </p>
-                      </div>
-                    }
-                  />
-                </FormGroup>
+              {/* Custom Pipeline Configuration */}
+              <div className={`${showCustomStagesError ? 'border-red-500' : 'bg-gray-50'}`}>
+                {/* <div className="mb-2">
+                  <p className="font-medium">Configure Hiring Pipeline</p>
+                  <p className="text-sm text-gray-600">
+                    Create your custom hiring pipeline with stages and required documents
+                  </p>
+                </div> */}
 
-                {!useDefaultStages && (
-                  <div className="mt-3">
-                    <Button
-                      variant="outlined"
-                      onClick={handleStageModalOpen}
-                      fullWidth
-                      sx={{
-                        py: 1.5,
-                        borderColor: showCustomStagesError ? 'error.main' : 'grey.400'
-                      }}
-                      color={showCustomStagesError ? 'error' : 'primary'}
-                    >
-                      {stages.length > 0
-                        ? `Re-configure Pipeline`
-                        : 'Configure Custom Pipeline'
-                      }
-                    </Button>
+                <div className="">
+                  <Button
+                    variant="outlined"
+                    onClick={handleStageModalOpen}
+                    fullWidth
+                    sx={{
+                      py: 1.5,
+                      borderColor: showCustomStagesError ? 'error.main' : 'grey.400'
+                    }}
+                    color={showCustomStagesError ? 'error' : 'primary'}
+                  >
+                    {stages.length > 0
+                      ? 'Re-configure Custom Pipeline'
+                      : 'Configure Custom Pipeline'}
+                  </Button>
 
-                    {stages.length > 0 && (
-                      <div className="mt-2 p-2 text-green-600 flex items-center gap-2">
-                        <Check />
-                        <p className="text-sm text-gray-700">
-                          Pipeline configured with {stages.length} stage(s)
-                        </p>
-                      </div>
-                    )}
+                  {stages.length > 0 && (
+                    <div className="mt-2 p-2 text-green-600 flex items-center gap-2">
+                      <Check size={20} />
+                      <p className="text-sm text-gray-700">
+                        Pipeline configured with {stages.length} stage(s)
+                      </p>
+                    </div>
+                  )}
 
-                    {showCustomStagesError && (
-                      <div className="mt-2 p-2 bg-red-50 rounded border border-red-200">
-                        <p className="text-sm text-red-800">
-                          <strong>Required:</strong> Please configure at least one custom stage
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                  {showCustomStagesError && (
+                    <div className="mt-2 p-2 bg-red-50 rounded border border-red-200">
+                      <p className="text-sm text-red-800">
+                        <strong>Required:</strong> Please configure at least one custom stage
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <Button
