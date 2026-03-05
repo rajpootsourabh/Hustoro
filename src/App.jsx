@@ -28,6 +28,7 @@ import Reports from "./Dashboard/Pages/Reports/Reports";
 import InvoiceList from "./Dashboard/Pages/Reports/InvoiceList";
 import CandidateReports from "./Dashboard/Pages/Reports/CandidateReports";
 import CandidateInvoices from "./Dashboard/Pages/Reports/CandidateInvoices";
+import ResetPassword from "./Dashboard/Pages/ResetPassword";
 
 
 function App() {
@@ -42,6 +43,7 @@ function App() {
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/signin" element={<Login />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Protected Routes inside Layout */}
           <Route path="/dashboard" element={<DashboardLayout />}>

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'
-import signup_bg from '../../assets/signup-bg.png'
-import white_tick from '../../assets/white-tick.png'
-import logo from '../../assets/logo_white.png'
+import React, { useEffect, useState } from 'react';
+import signup_bg from '../../assets/signup-bg.png';
+import white_tick from '../../assets/white-tick.png';
+import logo from '../../assets/logo_white.png';
 import TextField from '@mui/material/TextField';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -10,29 +10,31 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import Loader from '../Components/Loader'
+import Loader from '../Components/Loader';
 import { changeTitle } from '../../utils/changeTitle';
 import { useSnackbar } from '../Components/SnackbarContext';
+import ForgotPasswordPopup from '../Components/ForgotPasswordPopup';
 
 const Login = () => {
   const { showSnackbar } = useSnackbar();
-  const [rememberMe, setRememberMe] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const navigate = useNavigate()
+  const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false); // State for popup
+  const navigate = useNavigate();
 
   useEffect(() => {
-    changeTitle("Login")
-    const email = localStorage.getItem('email')
+    changeTitle("Login");
+    const email = localStorage.getItem('email');
     if (email) {
-      setRememberMe(true)
-      formik.values.email = email
+      setRememberMe(true);
+      formik.values.email = email;
     }
-  }, [])
+  }, []);
 
   const handleRememberMe = (e) => {
-    setRememberMe(e.target.checked)
-  }
+    setRememberMe(e.target.checked);
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -45,11 +47,11 @@ const Login = () => {
     }),
     onSubmit: (values) => {
       if (rememberMe) {
-        localStorage.setItem('email', values.email)
+        localStorage.setItem('email', values.email);
       } else {
-        localStorage.removeItem('email')
+        localStorage.removeItem('email');
       }
-      postLogin(values)
+      postLogin(values);
     },
   });
 
@@ -98,7 +100,6 @@ const Login = () => {
         localStorage.setItem('email', values.email);
         localStorage.setItem('user', JSON.stringify(cleanedUser));
         
-        
         if (employee_id) {
           localStorage.setItem('employeeId', employee_id);
         }
@@ -113,13 +114,11 @@ const Login = () => {
         // ✅ Redirect based on role
         if (user.role === 5) {
           navigate("/dashboard"); // for employee
-        }
-        if (user.role === 6) {
-          navigate("/dashboard/candidates"); // for employee
+        } else if (user.role === 6) {
+          navigate("/dashboard/candidates"); // for candidate
         } else {
           navigate("/dashboard/jobs"); // for admin, HR, recruiter etc.
         }
-
       } else {
         setLoading(false);
         setSuccess(false);
@@ -143,7 +142,7 @@ const Login = () => {
     'Manage the right person for every job.',
     'Move the right applicants forward.',
     'Find and attract candidates.'
-  ]
+  ];
   
   return (
     <div className='w-[100vw] relative h-[100vh] flex items-center justify-center bg-contain bg-top' style={{ backgroundImage: `url(${signup_bg})` }}>
@@ -158,6 +157,12 @@ const Login = () => {
       </div>
 
       {(loading || success) && <Loader message={"Getting you logged in ..."} />}
+      
+      {/* Forgot Password Popup */}
+      <ForgotPasswordPopup 
+        open={forgotPasswordOpen} 
+        onClose={() => setForgotPasswordOpen(false)} 
+      />
       
       <div className='max-w-[1700px] grid [@media(min-width:1000px)]:grid-cols-2 grid-cols-1 gap-5 items-center text-white'>
         <div className='xl:pl-40 md:pl-10 flex-col gap-6 [@media(min-width:1000px)]:flex hidden'>
@@ -214,6 +219,17 @@ const Login = () => {
                   }
                   label="Remember me"
                 />
+                <Button
+                  onClick={() => setForgotPasswordOpen(true)}
+                  style={{
+                    color: '#4f46e5',
+                    textTransform: 'none',
+                    fontSize: '14px',
+                    padding: '4px 8px'
+                  }}
+                >
+                  Forgot Password?
+                </Button>
               </div>
               <Button type='submit' variant='contained' style={{ backgroundColor: '#212121', padding: '10px 20px', borderRadius: '10px' }}>
                 Login
@@ -226,7 +242,7 @@ const Login = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default Login;
